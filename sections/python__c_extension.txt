@@ -1,0 +1,9 @@
+Python  Writing a C extension
+
+The "official" tutorial leaves a bit to be desired, it...okay, it leaves a lot to be desired in a tutorial. However, Mehul Mohan does a decent job of laying out the basics.
+
+- Excellent insight from Mehul Mohan:
+https://codedamn.com/news/python/implementing-custom-python-c-extensions-step-by-step-guide
+
+- Working code:
+https://github.com/LeamHall/sw_eng_notebook/code/myproject

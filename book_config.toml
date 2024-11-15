@@ -1,0 +1,9 @@
+report          = false
+title           = "Software Engineering Notebook"
+chapter_dir     = "sections"
+book_dir        = "book"
+reports_dir     = "reports"
+author          = "Leam Hall"
+has_header      = true
+section_break   = "\n__section_break__\n"
+
