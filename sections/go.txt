@@ -1,0 +1,26 @@
+Go
+
+Go is a compiled language originally from Google and written by some of the people who built C and Unix. The main site is at https://go.dev
+
+Cool things of note:
+ - Compatibility promise: Go 1.x code will run with Go 1.x.
+ - Easy cross-compile.
+ - Fairly easy to write. Well, easier than C or Rust, not as easy as Python. 
+
+
+Resources:
+- The Go Tour. You can run and learn Go in your browser.
+https://go.dev/tour/welcome/1
+ 
+- "Learning Go" by Jon Bodner. I'm in the acknowledgments for the 2nd edition.
+https://www.amazon.com/Learning-Go-Idiomatic-Real-World-Programming/dp/1098139291
+
+- "Building Powerful Command Line Applications in Go" by Ricardo Gerardi
+https://www.amazon.com/Powerful-Command-Line-Applications-Go-Maintainable/dp/168050696X
+
+- Gophercises by Jon Calhoun (Jon also has Algorithms, Testing, and Web courses)
+https://gophercises.com/
+
+- "Let's Go" Web book by Alex Edwards (and the follow-up "Let's Go Further")
+https://lets-go.alexedwards.net/
+https://lets-go-further.alexedwards.net/
