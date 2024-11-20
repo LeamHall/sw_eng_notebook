@@ -50,7 +50,7 @@ time.perf_counter(), unlike time.time, does not alter if the system clock is cha
 
 For a simple start in benchmarking, see:
 
-- https://github.com/LeamHall/sw_eng_notebook/code/benchmarking/time_testing.py
+- https://github.com/LeamHall/sw_eng_notebook/blob/master/code/benchmarking/time_testing.py
 __section_break__
 Chapter 3
 
@@ -66,7 +66,7 @@ https://codedamn.com/news/python/implementing-custom-python-c-extensions-step-by
 
 - Working code:
 
-https://github.com/LeamHall/sw_eng_notebook/code/myproject
+https://github.com/LeamHall/sw_eng_notebook/blob/master/code/mypackage
 __section_break__
 Chapter 4
 

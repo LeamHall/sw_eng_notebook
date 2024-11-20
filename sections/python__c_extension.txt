@@ -6,4 +6,4 @@ The "official" tutorial leaves a bit to be desired, it...okay, it leaves a lot t
 https://codedamn.com/news/python/implementing-custom-python-c-extensions-step-by-step-guide
 
 - Working code:
-https://github.com/LeamHall/sw_eng_notebook/code/myproject
+https://github.com/LeamHall/sw_eng_notebook/blob/master/code/mypackage
