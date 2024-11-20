@@ -48,12 +48,8 @@ print("Multiprocessing:   {:3f} time units".format(stop_time - start_time))
 
 
 start_time = time.perf_counter()
-with concurrent.futures.ThreadPoolExecutor(
-    max_workers=len(urls)
-) as executor:
-    future_to_url = {
-        executor.submit(get_status, url): url for url in urls
-    }
+with concurrent.futures.ThreadPoolExecutor(max_workers=len(urls)) as executor:
+    future_to_url = {executor.submit(get_status, url): url for url in urls}
     for future in concurrent.futures.as_completed(future_to_url):
         url = future_to_url[future]
         try:
@@ -67,12 +63,15 @@ print("Concurrent Futures:   {:3f} time units".format(stop_time - start_time))
 
 
 start_time = time.perf_counter()
+
+
 async def async_call(method, urls):
     status_codes = []
     for url in urls:
         status_codes.append(await asyncio.to_thread(method, url))
 
     return status_codes
+
 
 asyncio.run(async_call(get_status, urls))
 stop_time = time.perf_counter()
