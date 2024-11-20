@@ -1,0 +1,90 @@
+
+__section_break__
+Chapter 1
+
+Go
+
+
+
+Go is a compiled language originally from Google and written by some of the people who built C and Unix. The main site is at https://go.dev
+
+Cool things of note:
+
+- Compatibility promise: Go 1.x code will run with Go 1.x.
+
+- Easy cross-compile.
+
+- Fairly easy to write. Well, easier than C or Rust, not as easy as Python.
+
+Resources:
+
+- The Go Tour. You can run and learn Go in your browser.
+
+https://go.dev/tour/welcome/1
+
+- "Learning Go" by Jon Bodner. I'm in the acknowledgements for the 2nd edition.
+
+https://www.amazon.com/Learning-Go-Idiomatic-Real-World-Programming/dp/1098139291
+
+- "Building Powerful Command Line Applications in Go" by Ricardo Gerardi
+
+https://www.amazon.com/Powerful-Command-Line-Applications-Go-Maintainable/dp/168050696X
+
+- Gophercises by Jon Calhoun (Jon also has Algorithms, Testing, and Web courses)
+
+https://gophercises.com/
+
+- "Let's Go" Web book by Alex Edwards (and the follow-up "Let's Go Further")
+
+https://lets-go.alexedwards.net/
+
+https://lets-go-further.alexedwards.net/
+__section_break__
+Chapter 2
+
+Python  Writing a C extension
+
+
+
+The "official" tutorial leaves a bit to be desired, it...okay, it leaves a lot to be desired in a tutorial. However, Mehul Mohan does a decent job of laying out the basics.
+
+- Excellent insight from Mehul Mohan:
+
+https://codedamn.com/news/python/implementing-custom-python-c-extensions-step-by-step-guide
+
+- Working code:
+
+https://github.com/LeamHall/sw_eng_notebook/code/myproject
+__section_break__
+Chapter 3
+
+Python MPI (mpi4py)
+
+
+
+Installation:
+
+- Ensure openmpi-devel or mpich-devel, and their non-devel parts, are installed.
+
+- MPI on Fedora:
+
+https://docs.fedoraproject.org/en-US/neurofedora/mpi/
+
+- Insight from @dalcini (author of mpi4py):
+
+https://github.com/mpi4py/mpi4py/discussions/579#discussioncomment-11203978
+
+Specifically:
+
+After installing MPICH and/or Open MPI, please close your terminal and open another one. In the new terminal, load the module of the MPI you want to use and check the mpicc and mpiexec commands are found:
+
+$ module load mpi/mpich-x86_64
+
+$ which mpicc
+
+/usr/lib64/mpich/bin/mpicc
+
+$ which mpiexec
+
+/usr/lib64/mpich/bin/mpiexec
+

@@ -1,0 +1,19 @@
+Python MPI (mpi4py)
+
+
+Installation:
+- Ensure openmpi-devel or mpich-devel, and their non-devel parts, are installed.
+- MPI on Fedora:
+	https://docs.fedoraproject.org/en-US/neurofedora/mpi/
+
+- Insight from @dalcini (author of mpi4py):
+https://github.com/mpi4py/mpi4py/discussions/579#discussioncomment-11203978
+Specifically:
+After installing MPICH and/or Open MPI, please close your terminal and open another one. In the new terminal, load the module of the MPI you want to use and check the mpicc and mpiexec commands are found:
+
+$ module load mpi/mpich-x86_64 
+$ which mpicc
+/usr/lib64/mpich/bin/mpicc
+$ which mpiexec
+/usr/lib64/mpich/bin/mpiexec
+
