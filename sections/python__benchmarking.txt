@@ -1,2 +1,9 @@
-Python Benchmarking.
+Python Benchmarking
+
+
+time.perf_counter(), unlike time.time, does not alter if the system clock is changed.
+
+For a simple start in benchmarking, see:
+ - https://github.com/LeamHall/sw_eng_notebook/code/benchmarking/time_testing.py
+
 

@@ -22,7 +22,7 @@ Resources:
 
 https://go.dev/tour/welcome/1
 
-- "Learning Go" by Jon Bodner. I'm in the acknowledgements for the 2nd edition.
+- "Learning Go" by Jon Bodner. I'm in the acknowledgments for the 2nd edition.
 
 https://www.amazon.com/Learning-Go-Idiomatic-Real-World-Programming/dp/1098139291
 
@@ -42,6 +42,18 @@ https://lets-go-further.alexedwards.net/
 __section_break__
 Chapter 2
 
+Python Benchmarking
+
+
+
+time.perf_counter(), unlike time.time, does not alter if the system clock is changed.
+
+For a simple start in benchmarking, see:
+
+- https://github.com/LeamHall/sw_eng_notebook/code/benchmarking/time_testing.py
+__section_break__
+Chapter 3
+
 Python  Writing a C extension
 
 
@@ -56,7 +68,7 @@ https://codedamn.com/news/python/implementing-custom-python-c-extensions-step-by
 
 https://github.com/LeamHall/sw_eng_notebook/code/myproject
 __section_break__
-Chapter 3
+Chapter 4
 
 Python MPI (mpi4py)
 
@@ -87,4 +99,22 @@ $ which mpicc
 $ which mpiexec
 
 /usr/lib64/mpich/bin/mpiexec
+__section_break__
+Chapter 5
+
+Tools  Configuration Management
+
+
+
+Picking a Configuration Management tool can be expensive. While licenses are one issue the real costs come in training, lost productivity (for supposed huge gains much later), and significant process and documentation updating. Most of the choices are good, here are some simple guidelines (from a few decades of Ops support) that might help.
+
+1. If you have something you like, and it works, keep using it.
+
+2. If you're cloud only and don't patch servers directly, something like Terraform and/or your cloud provider's tools.
+
+3. If you are on prem and/or hybrid then build your use case list, pick one of the major players, and try them out.
+
+4. If you're still stumped then go old school for a while; shell, AWS CLI, Python/Go SDK, and web interface.
+
+You might find you don't need a lot, and digging into the question helps you see what's really important.
 
