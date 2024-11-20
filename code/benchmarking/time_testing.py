@@ -6,6 +6,7 @@
 # author  :
 # desc    :
 
+import asyncio
 import concurrent.futures
 from multiprocessing import Pool
 import time
@@ -36,14 +37,14 @@ start_time = time.perf_counter()
 for url in urls:
     print("Status: {}  URL: {}".format(get_status(url), url))
 stop_time = time.perf_counter()
-print("{:3f} time units".format(stop_time - start_time))
+print("Straight through:  {:3f} time units".format(stop_time - start_time))
 
 
 start_time = time.perf_counter()
 with Pool(5) as p:
     print(p.map(get_status, urls))
 stop_time = time.perf_counter()
-print("{:3f} time units".format(stop_time - start_time))
+print("Multiprocessing:   {:3f} time units".format(stop_time - start_time))
 
 
 start_time = time.perf_counter()
@@ -62,4 +63,17 @@ with concurrent.futures.ThreadPoolExecutor(
         else:
             print(code)
 stop_time = time.perf_counter()
-print("{:3f} time units".format(stop_time - start_time))
+print("Concurrent Futures:   {:3f} time units".format(stop_time - start_time))
+
+
+start_time = time.perf_counter()
+async def async_call(method, urls):
+    status_codes = []
+    for url in urls:
+        status_codes.append(await asyncio.to_thread(method, url))
+
+    return status_codes
+
+asyncio.run(async_call(get_status, urls))
+stop_time = time.perf_counter()
+print("Asyncio:   {:3f} time units".format(stop_time - start_time))
