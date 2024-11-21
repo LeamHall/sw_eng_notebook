@@ -1,0 +1,9 @@
+Automation   Resilient Operations
+
+The reference architecture is a web service with a database backend, the standard for much of the internet. There are several good data storage options, lots of web front ends, and even more combinations. Pick something that's fun to experiment with.
+
+Any discussion of "web and db" requires understanding networking basics. While the DB can be on the same host as the webserver for low load, resiliency, security and scalability are better if they are split. Which means networking from the outside to the web host, and then between the web and db, and then out from the web to wherever. It also means from the db to wherever source data comes from, where backups go, and how software upgrades get delivered. This spawns the "Posts, Protocols, and Services" (PPS) document (often a CSV file used in a spreadsheet or database); a matrix of which ports are open, who can connect to them, what protocols do they answer to, and what services do they offer. 
+
+For example, the webserver has inbound TCP Ports 80 and 443 from anywhere. It also needs inbound TCP/22 for administration via ssh (TCP/3389 if you're stuck on Windows). Outbound it needs to connect to the database (TCP/3306 for MariaDB, TCP/5432 for Postgres), UDP/123 for NTP, TCP/53 and UDP/53 for DNS resolution, and likely TCP/443 to reach its software repository for updates. Depending on how backups are configured may need another outbound, or even inbound port. 
+
+The DB server needs many of the above but does not need TCP/80 or TCP/443 from anywhere. This makes like a lot easier since you can tightly control which nodes the DB server talks to and reduce your risk footprint. Reducing risk increases resiliency. 
