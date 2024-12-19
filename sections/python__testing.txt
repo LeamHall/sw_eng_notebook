@@ -1,0 +1,27 @@
+Python  Testing
+
+
+When testing argparse in unittest, single dash args can be quoted with int
+values if the argument is coerced into an int. For example:
+    parser = a_s.parse_args(['-c 100'])
+
+Double dash args need to be quoted separately because the space between the 
+argument flag and value is passed as part of the value:
+    parser = a_s.parse_args(["--coin", "100"])
+
+ - this fails:
+    parser = a_s.parse_args(["-f data/my_advg.csv"])
+
+    AssertionError: 'data/my_advg.csv' != ' data/my_advg.csv'
+
+ - this works:
+    parser = a_s.parse_args(["-f", "data/my_advg.csv"])
+
+
+When you get tired of deprecation warnings in pytest:
+    python -m pytest -W ignore::DeprecationWarning
+
+If you're running that in a Docker container:
+    docker compose exec web python -m pytest -W ignore::DeprecationWarning
+
+

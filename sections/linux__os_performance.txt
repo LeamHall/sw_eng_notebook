@@ -1,0 +1,31 @@
+Linux OS Performance
+
+If I write anything useful here it probably came from Brendan Gregg's "Systems Performance" (https://www.amazon.com/Systems-Performance-Brendan-Gregg/dp/0136820158)
+
+Very useful site:  https://www.brendangregg.com/linuxperf.html
+
+The book gives Debian/Ubuntu packages to add, but I mostly work on RPM based servers. Here's the list of the tools Brendan says should already be on the box, so you can use it when things go bad:
+
+bcc-tools
+ethtool
+iproute
+kernelshark
+kernel-tools
+msr-tools
+nicstat
+numactl
+procps-ng
+sysstat
+tiptop
+trace-cmd
+util-linux-core
+
+Other Stuff:
+
+https://github.com/brendangregg/pmc-cloud-tools
+https://github.com/brendangregg/msr-cloud-tools
+
+Not found
+perf-tools-unstable (opensnoop, execsnoop, iolatency, iosnoop, bitesize, funccount, kprobe)
+
+
