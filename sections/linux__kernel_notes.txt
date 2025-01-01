@@ -1,0 +1,152 @@
+Join the #kernelnewbies IRC channel on the OFTC IRC network. Several of us developers hang out on that channel. This server is home to #mm, #linux-rt, and several other Linux channels.
+Join the #linux-kselftest, #linuxtv, #kernelci, or #v4l IRC channels on freenode. 
+
+There are several ways to get started and contribute to the kernel. A few ideas:
+
+    Subscribe to the Linux Kernel mailing list for the area of your interest.
+    Follow the development activity reading the Linux Kernel Mailing List Archives.
+    Join the #kernelnewbies IRC channel on the OFTC IRC network. Several of us developers hang out on that channel. This server is home to #mm, #linux-rt, and several other Linux channels.
+    Join the #linux-kselftest, #linuxtv, #kernelci, or #v4l IRC channels on freenode.
+    - This server recommends Nick registration. Server Name: irc.freenode.net/6667. You can register your Nick in the server tab with the command: identify /msg NickServ identify <password>
+    - You can configure your chat client to auto-identify using the NickServ(/MSG NickServ+password) option - works on hexchat.
+    Find spelling errors in kernel messages.
+    Static code analysis error fixing: Static code analysis is the process of detecting errors and flaws in the source code. The Linux kernel Makefile can be invoked with options to enable to run the Sparse source code checker on all source files, or only on the re-compiled files. Compile the kernel with the source code checker enabled and find errors and fix as needed.
+    Fix the Syzbot null pointer dereference and WARN bug reports which include the reproducer to analyze. Run the reproducer to see if you can reproduce the problem. Look ​​​at the crash report and walk through sources for a possible cause. You might be able to fix problems.
+    Look for opportunities to add/update .gitignore files for tools and Kselftest. Build tools and Kselftest and run git status. If there are binaries, then it is time to add a new .gitignore file and/or an entry to an existing .gitignore file.
+    Run mainline kernels built with the CONFIG_KASAN, Locking debug options mentioned earlier in the debugging section, and report problems if you see any. This gives you an opportunity to debug and fix problems. The community welcomes fixes and bug reports
+
+
+
+### /etc/default/grub
+GRUB_CMDLINE_LINUX="earlyprink=vga"
+#GRUB_TIMEOUT_STYLE=hidden
+GRUB_TIMEOUT=30
+
+
+----------------------------------------------------------------------------------------------------------
+stable_rc_checkout.sh
+     #!/bin/bash
+     ## SPDX-License-Identifier: GPL-2.0
+     # Copyright(c) Shuah Khan <skhan@linuxfoundation.org>
+     #
+     # License: GPLv2
+     # Example usage: stable_rc_checkout.sh <stable-rc e.g 5.2>
+     mkdir -p stable_rc
+     cd stable_rc
+     git clone git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable-rc.git linux-$1.y
+     cd linux-$1.y
+     #cp /boot/<currentconfig> .config # update script
+     make -j2 all
+     rc=$?; if [[ $rc !=0 ]]; then exit $rc; fi
+     su -c "make modules_install install"
+     echo Ready for reboot test of Linux-$1
+----------------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------------------------
+stable_checkout.sh
+     #!/bin/bash
+     ## SPDX-License-Identifier: GPL-2.0
+     # Copyright(c) Shuah Khan <skhan@linuxfoundation.org>
+     #
+     # License: GPLv2
+     # Example usage: stable_checkout.sh <stable-release-version e.g 5.2>
+     mkdir -p stable
+     cd stable
+     git clone git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git linux_$1_stable
+     cd linux_$1_stable
+     git checkout linux-$1.y
+     #cp /boot/ .config # update script​
+----------------------------------------------------------------------
+
+pre_compile_setup.sh
+     #!/bin/bash
+     ## SPDX-License-Identifier: GPL-2.0
+     # Copyright(c) Shuah Khan <skhan@linuxfoundation.org>
+     #
+     # License: GPLv2
+     # Example usage: pre_compile_setup.sh 5.2.11 1 5
+     # Arg 1 is the stable release version which is typically 5.2.x
+     # Arg2 is the 1 for rc1 or 2 for rc2
+     # Arg3 is 4.x or 5.x used to call wget to get the patch file
+     echo Testing patch-$1-rc$2
+     wget https://www.kernel.org/pub/linux/kernel/v$3.x/stable-review/patch-$1-rc$2.gz ;
+     git reset --hard
+     make clean
+     git pull
+     gunzip patch-$1-rc$2.gz
+     git apply --index patch-$1-rc$2
+     echo "Patch-$1-rc$2 applied"
+     head Makefile
+     make -j2 all
+     rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+     su -c "make modules_install install"
+     echo Ready for reboot test of Linux-$1-$2
+---------------------------------------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------------------------------------------------
+dmesg_checks.sh
+     # !/bin/bash
+     #
+     #SPDX-License-Identifier: GPL-2.0
+     # Copyright(c) Shuah Khan <skhan@linuxfoundation.org>
+     #
+     # License: GPLv2​
+
+          if [ "$1" == "" ]; then
+             echo "$0 " <old name -r>
+             exit -1
+     fi
+
+release=`uname -r`
+echo "Start dmesg regression check for $release" > dmesg_checks_results
+
+echo "--------------------------" >> dmesg_checks_results
+
+dmesg -t -l emerg > $release.dmesg_emerg
+echo "dmesg emergency regressions" >> dmesg_checks_results
+echo "--------------------------" >> dmesg_checks_results
+diff $1.dmesg_emerg $release.dmesg_emerg >> dmesg_checks_results
+echo "--------------------------" >> dmesg_checks_results
+
+dmesg -t -l crit > $release.dmesg_crit
+echo "dmesg critical regressions" >> dmesg_checks_results
+echo "--------------------------" >> dmesg_checks_results
+diff $1.dmesg_crit $release.dmesg_crit >> dmesg_checks_results 
+echo "--------------------------" >> dmesg_checks_results
+
+dmesg -t -l alert > $release.dmesg_alert
+echo "dmesg alert regressions" >> dmesg_checks_results
+echo "--------------------------" >> dmesg_checks_results
+diff $1.dmesg_alert $release.dmesg_alert >> dmesg_checks_results
+echo "--------------------------" >> dmesg_checks_results
+
+dmesg -t -l err > $release.dmesg_err
+echo "dmesg err regressions" >> dmesg_checks_results
+echo "--------------------------" >> dmesg_checks_results
+diff $1.dmesg_err $release.dmesg_err >> dmesg_checks_results
+echo "--------------------------" >> dmesg_checks_results
+
+dmesg -t -l warn > $release.dmesg_warn
+echo "dmesg warn regressions" >> dmesg_checks_results
+echo "--------------------------" >> dmesg_checks_results
+diff $1.dmesg_warn $release.dmesg_warn >> dmesg_checks_results
+echo "--------------------------" >> dmesg_checks_results
+
+dmesg -t > $release.dmesg
+echo "dmesg regressions" >> dmesg_checks_results
+echo "--------------------------" >> dmesg_checks_results
+diff $1.dmesg $release.dmesg >> dmesg_checks_results
+echo "--------------------------" >> dmesg_checks_results
+
+dmesg -t > $release.dmesg_kern
+echo "dmesg_kern regressions" >> dmesg_checks_results
+echo "--------------------------" >> dmesg_checks_results
+diff $1.dmesg_kern $release.dmesg_kern >> dmesg_checks_results
+echo "--------------------------" >> dmesg_checks_results
+
+echo "--------------------------" >> dmesg_checks_results
+
+echo "End dmesg regression check for $release" >> dmesg_checks_results
+----------------------------------------------------------------------------------------------------------
+
+
