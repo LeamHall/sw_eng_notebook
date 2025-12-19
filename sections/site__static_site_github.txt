@@ -1,0 +1,89 @@
+Setting up a static web site with GitHub and Hover
+=================================================
+
+
+Assumptions
+===========
+
+  You have a GitHub account, and can do git basics.
+  You own a domain name. This document uses Hover, but 
+    others are likely similar.
+  You can do basic text editing for html.
+
+
+
+On GitHub
+=========
+
+Your GitHub account hosts your project repositories.
+  https://pages.github.com/
+
+
+Create the sub-project at GitHub.
+
+  github.com/MyStuff  -> Repositories  -> New
+
+  Repository name: 
+    The first part is the domain, and the rest must be "github.io".
+
+      example.github.io
+
+  Description:
+    Static site for the Example.com web pages.
+
+  Private.  The repository can be private, with the pages become viewable
+    when they are published. 
+
+    An aside: Paying USD 4 per month to GitHub, or similar, is a 
+      great way to keep private data safe. In case your computer 
+      dies, or gets stolen. Maybe not bank vault security, but 
+      much better than nothing.
+
+  "Add a README file", "Add .gitignore", and "Choose a license"
+    Leave unselected for the moment. We can add them manually.
+
+  Create Repository
+
+
+On your local machine
+=====================
+
+Clone the repository to your local machine.
+
+  git clone git@github.com:MyStuff/example.github.io.git
+
+
+Add a first page.
+  Edit index.html, and push up to the repo.
+ 
+
+
+On GitHub, in the repository
+============================
+
+  Settings -> "GitHub Pages" 
+    Under "Source", select the master branche, and then "Save".
+  
+    Under "Custom domain", put your domain name, and click "Save".
+      This will put a new file, "CNAME", in your repository. 
+      Do a git pull to ensure you have it.
+
+
+
+At your DNS registry (Hover.com)
+================================
+
+  Assuming you have the domain already registered.
+
+  In the "Overview", ensure your NAMESERVERS are "ns1.hover.com" and "ns2.hover.com".
+
+  While you're here, make sure your REGISTRATION RECORDS are correct, and your 
+    renewal date is far into the future.
+
+  Select the domain, and then "DNS".
+    Add two A records, "*" and "@". Set the IP for 185.199.111.153
+    Add a CNAME record: HOSTNAME "www" TARGET NAME http://github.com/MyStuff/example.github.io  
+     
+  Wait for a bit, maybe half an hour. Go plan your new master piece of web-y-ness.
+
+
