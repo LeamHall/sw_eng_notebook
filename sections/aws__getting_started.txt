@@ -1,0 +1,89 @@
+AWS  Getting Started
+
+Here's a checklist for trying out AWS. While I try to make it as easy and low cost as possible, I will suggest things that may have a cost. You are responsible for what you do; if you do not want to pay for it, or can not pay for it, do not do it.
+
+
+Account Setup
+
+Get a credit, debit, or paypal card
+ - You need to link this to the account you're going to create.
+ - (opinion) I use PayPal, with immediate emails on any charge made.
+ - - (opinion) I don't have a credit card, neither should you.
+
+
+Get an MFA device (optional)
+ - Security of your account is important.
+ - I use a Yubikey:  https://www.amazon.com/gp/product/B08DHL1YDL
+
+
+Create an AWS Account
+ - Write down your account number.
+ - You will initially log in as the root user.
+ - Connect your MFA device to your root user account. (optional)
+
+
+Create a Budget
+ - So you get notified if there are more charges than you want to pay for.
+ - (opinion) I set it at USD 10, I'm cheap.
+
+
+Create an administrator Group
+ - Grant AdministratorAccess
+
+
+Create an administrator Account
+ - Add this account to the administrator group above.
+ - Ensure you can log in to the Web Console with this account.
+
+
+AWS CLI Setup
+
+Create an Access Key for CLI access
+
+Log in to the AWS Management Console with your administrator account.
+
+In the navigation bar at the upper right, choose your user name, and then choose Security Credentials.
+
+In the Access keys section, choose Create access key.
+
+Download the credentials file or copy the Access Key ID and Secret Access Key to a secure location. You won't be able to see the Secret Access Key again.
+
+
+Install AWS CLI
+
+Follow the installation instructions at:
+https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+
+
+Configure AWS CLI
+
+Run the configuration command:
+  aws configure
+
+You'll be prompted to enter:
+  AWS Access Key ID: [Enter your Access Key ID]
+  AWS Secret Access Key: [Enter your Secret Access Key]
+  Default region name: [e.g., us-east-2]
+  Default output format: [json, yaml, text, or table - json is recommended]
+
+
+Test Your CLI Setup
+
+Create a test S3 bucket:
+  aws s3 mb s3://my-test-bucket-name-unique-12345
+
+List your S3 buckets:
+  aws s3 ls
+
+If you see your bucket listed, your CLI is working correctly.
+
+
+Troubleshooting
+
+If you encounter issues:
+- Verify your access key ID and secret access key are correct
+- Check that your IAM user has the necessary permissions
+- Ensure you're using the correct region
+
+AWS CLI Documentation:
+https://docs.aws.amazon.com/cli/latest/userguide/

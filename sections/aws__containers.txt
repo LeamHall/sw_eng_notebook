@@ -1,0 +1,44 @@
+AWS  Amazon Linux Container
+
+My hypothesis is that running Amazon Linux in EC2 would be more performant than other Linux versions because the AWS engineers could tune their OS distribution to their platform.
+
+To test, I began by building an Amazon Linux container locally. This would allow investigating the OS itself, and then knowing how to configure it for use and observability. This quickly ran into the issue of portablity, while Amazon does have a container image on the Docker Hub, it doesn't run in standalone mode and it is missing basic sysadmin tools like "ps".
+
+So far a kludge resolves the stand-alone issue, but I'd like to find a better solution. Here's the annotated Dockerfile and commands used.
+
+
+FROM amazonlinux:latest                          (1)
+RUN yum install iproute sysstat procps-ng httpd -y  (2)(6)(7)(8)(9)
+# RUN httpd -k start                              (3)
+# RUN systemctl start httpd                       (4)
+ENTRYPOINT ["/usr/sbin/httpd"]                   (5)
+CMD ["-DFOREGROUND"]
+
+
+(1)  https://docs.aws.amazon.com/linux/al2023/ug/base-container.html
+(2)  Adding some observability tools and httpd to keep the thing up.
+(3)  This just exits out.
+(4)  This fails with:
+    > [3/4] RUN systemctl start httpd:
+    0.976 System has not been booted with systemd as init system (PID 1). Can't operate.
+    0.976 Failed to connect to bus: Host is down
+(5)  This ENTRYPOINT and CMD pair works.
+(6)  iproute gives the "ip" command.
+(7)  sysstat gives the sar, pidstat, vmstat, iostat, and mpstat commands.
+(8)  procps-ng gives the "ps" command.
+(9)  httpd is required to have a running process, otherwise the container shuts down.
+
+
+Commands:
+
+Get the container image (https://hub.docker.com/_/amazonlinux).
+  docker pull amazonlinux
+
+In the directory with the Dockerfile. Note the ending ".".
+  docker build -t amzl_web .
+
+You must also start it with "&" to regain your terminal window.
+  docker run amzl_web &
+
+Connect to the container.
+  docker exec -it <container_name> /bin/bash

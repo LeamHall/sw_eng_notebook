@@ -1,0 +1,161 @@
+#!/usr/bin/env python3
+"""
+Batch update blog posts with modern HTML5 structure
+Preserves content while adding navigation, proper structure, and CSS
+"""
+
+import re
+import glob
+from pathlib import Path
+
+TEMPLATE = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title} | Leam Hall</title>
+  <meta name="description" content="{description}">
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body class="page-grid">
+
+  <nav class="site-nav">
+    <div class="container">
+      <div class="nav-brand">
+        <a href="/">Leam Hall</a>
+      </div>
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/blog/">Blog</a></li>
+        <li><a href="/resume/">Resume</a></li>
+        <li><a href="https://github.com/LeamHall" target="_blank" rel="noopener">GitHub</a></li>
+        <li><a href="https://www.linkedin.com/in/leamhall" target="_blank" rel="noopener">LinkedIn</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <article class="blog-post">
+      <div class="container container--narrow">
+
+        <header class="post-header">
+          <h1>{title}</h1>
+        </header>
+
+        <div class="post-content">
+{content}
+        </div>
+
+        <footer class="post-footer">
+          <a href="/blog/" class="back-link">Back to Blog</a>
+        </footer>
+
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2025 Leam Hall. Software Engineer and Encourager.</p>
+    </div>
+  </footer>
+
+</body>
+</html>
+"""
+
+def extract_content(html_content):
+    """Extract title and body content from old HTML"""
+
+    # Remove BOM if present
+    html_content = html_content.replace('\ufeff', '')
+
+    # Try to extract title from <title> tag
+    title_match = re.search(r'<title[^>]*>(.*?)</title>', html_content, re.IGNORECASE | re.DOTALL)
+    if title_match:
+        title = title_match.group(1).strip()
+    else:
+        # Fallback to h2 tag
+        h2_match = re.search(r'<h2[^>]*>(.*?)</h2>', html_content, re.IGNORECASE | re.DOTALL)
+        title = h2_match.group(1).strip() if h2_match else "Blog Post"
+
+    # Extract body content
+    body_match = re.search(r'<body[^>]*>(.*?)</body>', html_content, re.IGNORECASE | re.DOTALL)
+    if body_match:
+        body_content = body_match.group(1).strip()
+
+        # Remove the first h2 heading if it matches the title
+        body_content = re.sub(r'^<h2[^>]*>.*?</h2>\s*', '', body_content, count=1, flags=re.IGNORECASE | re.DOTALL)
+
+        # Clean up any h2 tags - convert to h3
+        body_content = re.sub(r'<h2>', '<h3>', body_content, flags=re.IGNORECASE)
+        body_content = re.sub(r'</h2>', '</h3>', body_content, flags=re.IGNORECASE)
+
+        # Indent content properly (10 spaces for template alignment)
+        lines = body_content.split('\n')
+        indented_lines = []
+        for line in lines:
+            if line.strip():
+                indented_lines.append('          ' + line.strip())
+            else:
+                indented_lines.append('')
+        body_content = '\n'.join(indented_lines)
+
+    else:
+        body_content = '          <p>Content not found.</p>'
+
+    # Create simple description from title
+    description = f"Blog post: {title}"
+
+    return title, body_content, description
+
+def update_blog_post(file_path):
+    """Update a single blog post file"""
+    print(f"Processing: {file_path}")
+
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            old_content = f.read()
+
+        # Extract title and content
+        title, content, description = extract_content(old_content)
+
+        # Generate new HTML
+        new_html = TEMPLATE.format(
+            title=title,
+            description=description,
+            content=content
+        )
+
+        # Write updated file
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(new_html)
+
+        print(f"  ✓ Updated: {title}")
+        return True
+
+    except Exception as e:
+        print(f"  ✗ Error: {e}")
+        return False
+
+def main():
+    """Main function to process all blog posts"""
+    blog_dir = Path(__file__).parent / 'blog'
+
+    # Get all HTML files except index.html and best_programming_language.html (already done)
+    blog_files = list(blog_dir.glob('*.html'))
+    blog_files = [f for f in blog_files if f.name not in ['index.html', 'best_programming_language.html']]
+
+    print(f"Found {len(blog_files)} blog posts to update\n")
+
+    success_count = 0
+    for blog_file in sorted(blog_files):
+        if update_blog_post(blog_file):
+            success_count += 1
+
+    print(f"\n{'='*60}")
+    print(f"Completed: {success_count}/{len(blog_files)} files updated successfully")
+    print(f"{'='*60}")
+
+if __name__ == '__main__':
+    main()

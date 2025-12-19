@@ -1,0 +1,134 @@
+Ansible  Getting Started
+
+Installation
+
+The newest Ansible can be found at:
+https://releases.ansible.com/ansible/rpm/release/
+
+This will require the sshpass rpm from EPEL be installed as well.
+
+To install EPEL:
+  yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
+
+You need the following RPMs:
+  ansible
+  epel-release
+  libyaml
+  python-babel
+  python-crypto
+  python-crypto2.6
+  python-httplib2
+  python-jinja2
+  python-keyczar
+  python-markupsafe
+  python-paramiko
+  python-pyasn1
+  python-setuptools
+  python-simplejson
+  python-six
+  PyYAML
+  sshpass
+
+
+Initial Setup and Testing
+
+Glossary:
+
+  ansible_master: The node where ansible commands are run from.
+    Must have ansible software installed.
+  ansible_service_account (ASA): Account used to run ansible commands.
+  node: Any compute device; Linux VM, Cisco Switch, even a Windows box.
+  remote_node: Node that will be managed via Ansible.
+  ssh_key_store (SKS): Where the public and private ssh keys are stored.
+
+
+[optional] Set up an ASA on the ansible_master.
+  This is recommended so user accounts are not required for administration.
+  Ensure user accounts can "su -" to the ASA.
+
+
+Set up the ASA on the remote_nodes.
+
+
+Copy ssh keys from ansible_master/ASA to remote_nodes/ASA/SKS
+  TODO: Figure out WinRM access.
+  Test passwordless login to all nodes.
+
+
+Set up sudo type access on the remote_nodes.
+  Example:  /etc/sudoers.d/01_ansible
+
+    ansible ALL=(ALL)  ALL
+
+
+Create a hosts file for your team's nodes.
+ mkdir server_info
+ vi server_info/hosts
+  See: hosts.sample
+
+
+Test basic functionality.
+  Note that the module 'ping' isn't the command 'ping'. The module
+    actually logs into the machine for a more thorough test.
+
+  $ ansible vms -m ping -i server_info/hosts
+
+  192.168.1.77 | SUCCESS => {
+      "changed": false,
+      "ping": "pong"
+  }
+  192.168.1.76 | SUCCESS => {
+      "changed": false,
+      "ping": "pong"
+  }
+
+
+Understand the basic command layout. For more detail, see:
+  http://docs.ansible.com/ansible/intro_adhoc.html
+
+  ansible vms -m ping -i server_info/hosts
+
+    ansible           Base command for ad hoc runs.
+    vms               Group name from the hosts file.
+    -m ping           Use the 'ping' module.
+    -i server_info/hosts
+                      Inventory file for hosts in Group
+
+
+Get the kernel version:
+
+  $ ansible vms -m setup -a 'filter=ansible_kernel' -i server_info/hosts
+
+  192.168.1.76 | SUCCESS => {
+      "ansible_facts": {
+          "ansible_kernel": "2.6.32-696.el6.x86_64"
+      },
+      "changed": false
+  }
+  192.168.1.77 | SUCCESS => {
+      "ansible_facts": {
+          "ansible_kernel": "2.6.32-696.el6.x86_64"
+      },
+      "changed": false
+  }
+
+
+Drown yourself in data. Best to send this to a file.
+
+  $ ansible vms -m setup -i server_info/hosts
+
+
+Get a JSON file of each node's info.
+  Creates a file for each node in the server_info directory.
+
+  $ ansible vms -m setup --tree server_info -i server_info/hosts
+
+
+Run an administrative command:
+  -a      Module arguments. Module defaults to 'command'.
+  -b      Become a different user. Defaults to root.
+  -K      Ask for remote_user's sudo password.
+
+  $ ansible exodus -a 'reboot' -i server_info/hosts -K -b
+  SUDO password:
+  exodus | SUCCESS | rc=0 >>

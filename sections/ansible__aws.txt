@@ -1,0 +1,97 @@
+Ansible  AWS Integration
+
+Basic AWS Operations
+
+
+To create an aws_environment (in progress):
+    ansible-playbook playbooks/create_aws.yaml
+
+
+To clean up all AWS items (work in progress):
+    ansible-playbook playbooks/clear_aws.yaml
+
+
+To get a list of VPCs:
+    aws ec2 describe-vpcs
+
+
+To delete multiple VPCs:
+    ansible-playbook playbooks/vpc_delete.yaml --extra-vars '{"vpc_names": ["vpc_br549", "test_vpc_cweiei0", "test_vpc_whuch00"]}'
+
+
+Ansible Patterns for AWS Instance Management
+
+From IRC discussion about managing AWS instances with Ansible:
+
+Problem: Register a variable in one task and add to it in another task, specifically for creating AWS instances and then cleaning them all up.
+
+Solutions:
+
+1. Simple concatenation in cleanup loop:
+   with_items: '{{ machines_created_by_task1 + machines_created_by_task2 + ... }}'
+
+   - Works when task types are stable
+   - Must remember to update cleanup loop when adding new task types
+
+2. Use set_fact to build a list:
+   set_fact: "{{ instances|default([]).append(registered_var) }}"
+
+   - Add this after creating each instance
+   - Builds a cumulative list
+
+3. Use custom tags (recommended for AWS):
+   - Tag instances with custom identifiers when creating them
+   - Query by tag for cleanup
+   - More robust if playbook aborts - can still find and clean up instances
+   - Doesn't require maintaining state within the playbook
+
+4. List of dicts with loop (cleanest approach):
+   - Define instance configurations as a list of dicts in inventory
+   - Single instance creation task with a loop + register
+   - Separates configuration from playbook logic
+   - Easy to add new OS/Arch combinations without touching playbook
+
+Example structure:
+   instances:
+     - os: ubuntu
+       arch: x86_64
+       ami: ami-xxxxx
+     - os: amazonlinux
+       arch: arm64
+       ami: ami-yyyyy
+
+
+Managing Dynamic Inventory
+
+For creating instances and then doing stuff on them in same playbook:
+
+1. Use ec2 inventory plugin
+2. After creating instances on localhost, refresh inventory:
+   - ansible.builtin.meta refresh_inventory
+   - Or: ansible.builtin.add_host
+
+This allows newly created instances to be immediately available for configuration tasks.
+
+
+Installing Python on Build Hosts
+
+   7  sudo su -
+    8  cd /usr/src/python
+    9  wget https://www.python.org/ftp/python/3.13.9/Python-3.13.9.tgz
+   10  tar -xzvf Python-3.13.9.tgz
+   11  cd Python-3.13.9/
+   12  ./configure --enable-optimizations
+   13  make
+   14  sudo su -
+   17  sudo make altinstall
+   19  python3.13 -V
+   21  python3.13 -m pip install flask robotframework robotframework-seleniumlibrary
+
+As root:
+    5  dnf update
+    6  dnf groupinstall -y "Development Tools"
+    7  dnf -y install gcc openssl-devel bzip2-devel libffi-devel
+    8  cd /usr/src
+   10  mkdir python
+   13  chgrp adm python
+   14  chmod g+rwx python

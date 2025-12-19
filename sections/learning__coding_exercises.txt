@@ -1,0 +1,120 @@
+Learning  Coding Practice Exercises
+
+Overall Task Areas
+
+Documentation
+  inline
+  function
+  module
+  usage
+
+Tests
+  unit
+  end to end
+
+Data
+  boolean
+  numbers
+  strings
+  ordered by index lists
+  key value stores
+  dissimilar key types (struct)
+
+Control Flow
+  decision
+  iteration
+  break/continue
+
+Functions
+  define
+  return
+
+CLI
+  options
+  cli args
+  defaults
+
+Libraries
+  import and use
+
+Math
+  basics (add, subtract, multiply, divide, modulo)
+  average, min, max
+
+Files
+  read
+  write
+
+
+Command Line Interface (CLI) Exercise
+
+Package structure
+import packages for printing, the operating system, and dealing with flags.
+
+Main
+
+OS environment settings
+Print an OS environment variable.
+
+Flags
+Set a CLI Flag to true, with a default of false
+
+Options
+Set a CLI string option to a city, with a default value of someone important.
+
+Set a CLI pointer to a string option to a fictional character, with a default
+value of a color.
+
+Set a CLI integer to a positive value, and print it squared.
+
+Wrap up
+Review your work, make your notes, and delete the file.
+
+
+Database Connections Exercise
+
+Before you begin
+This assumes you know how to use databases with your language. For example:
+  https://sqlite.org/quickstart.html
+  https://golang.org/doc/tutorial/database-access
+  https://docs.python.org/3/library/sqlite3.html
+  https://metacpan.org/pod/DBD::SQLite
+
+Create a file called database with your language extension.
+
+Create vars for the result sets and the data.
+
+Create a connection to the database.
+- Handle the potential error.
+- Set it to close.
+
+Pull a result, and print it.
+
+
+Testing Exercise
+
+Write tests for a simple module.
+
+Write a test case for the function "doubler". Doubler takes an int and returns
+it doubled.
+
+Write the file for doubler.
+
+Make the test pass.
+
+Review your work, make your notes, and delete the file.
+
+
+Pointers Exercise (Compiled Languages)
+
+Create a file called pointers and append whatever suffix you need
+
+Create a function that takes a pointer to an int, and returns the int doubled.
+
+Create an int variable, and pass it to the doubler function.
+
+Add an int and an * int.
+
+Increment the original int variable via a pointer to it.
+
+Think about what challenged you, make some notes, and then delete the file.

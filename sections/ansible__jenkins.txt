@@ -1,0 +1,63 @@
+Ansible  Jenkins Setup
+
+Notes on how to install and use Jenkins
+
+
+Initial Work
+
+  From:
+    https://pkg.jenkins.io/redhat-stable/
+
+  Process:
+
+    wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+    rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+
+    yum -y install jenkins
+
+
+    systemctl start jenkins.service
+    systemctl enable jenkins.service
+    systemctl status jenkins.service
+
+
+Configuration
+
+    http://localhost:8080
+
+    Select plug-ins.
+      TODO: Set up your team standards
+
+    Admin User
+    ISSUE: Your first "admin user" must have a stupid simple password.
+      https://issues.jenkins-ci.org/browse/JENKINS-54259
+
+
+Usage
+
+  My notes are based on learning Jenkins as I document it. If you know
+  what you're doing, feel free to skip this part.  :)
+
+  Adding a user
+
+  https://wiki.jenkins.io/display/JENKINS/Standard+Security+Setup
+
+  Once you click "Save" it seems to lose the page so you have to go back.
+  Click "Create an account" with the name you just added.
+
+  Login as your new account.
+  Upper right corner, click your name.
+  Left side menu, click Configure.
+  Down the page, add your ssh public key.
+  Click Save.
+
+
+  Starting a Project
+
+  On http://localhost:8080/newJob
+    "Enter an item name"  -> perl_test
+    Select "Freestyle project"
+    "OK"
+
+  Note: The Jenkins tour seems to want Docker.
+  https://docs.docker.com/install/linux/docker-ce/fedora/#install-using-the-repository

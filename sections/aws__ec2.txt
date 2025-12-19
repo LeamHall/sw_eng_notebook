@@ -1,0 +1,70 @@
+AWS  EC2 Instances
+
+Creating EC2 Instances via CLI
+
+
+Basic EC2 Creation (External/Jump Host)
+
+## Instance 1, external
+
+aws ec2 create-security-group --group-name "jump" --description "jump_into_vpc" --vpc-id "vpc-0107b56edb21569e0"
+aws ec2 authorize-security-group-ingress --group-id "sg-preview-1" --ip-permissions '{"IpProtocol":"tcp","FromPort":22,"ToPort":22,"IpRanges":[{"CidrIp":"76.23.112.35/32"}]}'
+aws ec2 run-instances --image-id "ami-06c8f2ec674c67112" --instance-type "t2.micro" --key-name "leam_sol_arch" --network-interfaces '{"SubnetId":"subnet-03488ee2fbfee919e","AssociatePublicIpAddress":true,"DeviceIndex":0,"Groups":["sg-preview-1"]}' --credit-specification '{"CpuCredits":"standard"}' --tag-specifications '{"ResourceType":"instance","Tags":[{"Key":"Name","Value":"jump_002"}]}' --metadata-options '{"HttpEndpoint":"enabled","HttpPutResponseHopLimit":2,"HttpTokens":"required"}' --private-dns-name-options '{"HostnameType":"ip-name","EnableResourceNameDnsARecord":false,"EnableResourceNameDnsAAAARecord":false}' --count "1"
+
+
+Internal Instance Creation
+
+## Instance 2, internal
+
+aws ec2 create-security-group --group-name "internal" --description "internal hosts " --vpc-id "vpc-0107b56edb21569e0"
+aws ec2 authorize-security-group-ingress --group-id "sg-preview-1" --ip-permissions '{"IpProtocol":"tcp","FromPort":22,"ToPort":22,"IpRanges":[{"CidrIp":"192.168.1.0/24","Description":"SSH test"}]}' '{"IpProtocol":"tcp","FromPort":0,"ToPort":0}'
+aws ec2 run-instances --image-id "ami-06c8f2ec674c67112" --instance-type "t2.micro" --key-name "leam_sol_arch" --network-interfaces '{"SubnetId":"subnet-05161e69fdd127bd5","AssociatePublicIpAddress":false,"DeviceIndex":0,"Groups":["sg-preview-1"]}' --credit-specification '{"CpuCredits":"standard"}' --tag-specifications '{"ResourceType":"instance","Tags":[{"Key":"Name","Value":"internal_001"}]}' --metadata-options '{"HttpEndpoint":"enabled","HttpPutResponseHopLimit":2,"HttpTokens":"required"}' --private-dns-name-options '{"HostnameType":"ip-name","EnableResourceNameDnsARecord":false,"EnableResourceNameDnsAAAARecord":false}' --count "1"
+
+
+Troubleshooting EC2 Creation
+
+### A few different options, need to check the defaults.
+
+aws ec2 create-security-group --group-name "jump_access" --description "jump access into vpc." --vpc-id "vpc-081f4e06744552e2a"
+aws ec2 authorize-security-group-ingress --group-id "sg-preview-1" --ip-permissions '{"IpProtocol":"tcp","FromPort":22,"ToPort":22,"IpRanges":[{"CidrIp":"76.23.112.35/32","Description":"SSH from My IP"}]}'
+aws ec2 run-instances --image-id "ami-06c8f2ec674c67112" --instance-type "t2.micro" --instance-initiated-shutdown-behavior "terminate" --key-name "leam_sol_arch" --network-interfaces '{"SubnetId":"subnet-0b49aca7eed4ef45e","AssociatePublicIpAddress":true,"DeviceIndex":0,"Groups":["sg-preview-1"]}' --hibernation-options '{"Configured":false}' --monitoring '{"Enabled":false}' --credit-specification '{"CpuCredits":"standard"}' --tag-specifications '{"ResourceType":"instance","Tags":[{"Key":"Name","Value":"jump_001"}]}' --metadata-options '{"HttpEndpoint":"enabled","HttpPutResponseHopLimit":2,"HttpTokens":"required"}' --private-dns-name-options '{"HostnameType":"ip-name","EnableResourceNameDnsARecord":false,"EnableResourceNameDnsAAAARecord":false}' --maintenance-options '{"AutoRecovery":"disabled"}' --count "1"
+
+
+### This one assigns the private IP.
+aws ec2 create-security-group --group-name "jump_access" --description "jump access into vpc." --vpc-id "vpc-081f4e06744552e2a"
+aws ec2 authorize-security-group-ingress --group-id "sg-preview-1" --ip-permissions '{"IpProtocol":"tcp","FromPort":22,"ToPort":22,"IpRanges":[{"CidrIp":"76.23.112.35/32","Description":"SSH from My IP"}]}'
+aws ec2 run-instances --image-id "ami-06c8f2ec674c67112" --instance-type "t2.micro" --instance-initiated-shutdown-behavior "terminate" --key-name "leam_sol_arch" --network-interfaces '{"SubnetId":"subnet-0b49aca7eed4ef45e","DeleteOnTermination":true,"AssociatePublicIpAddress":true,"DeviceIndex":0,"PrivateIpAddresses":[{"Primary":true,"PrivateIpAddress":"192.168.1.25"}],"Groups":["sg-preview-1"]}' --hibernation-options '{"Configured":false}' --monitoring '{"Enabled":false}' --credit-specification '{"CpuCredits":"standard"}' --tag-specifications '{"ResourceType":"instance","Tags":[{"Key":"Name","Value":"jump_001"}]}' --metadata-options '{"HttpEndpoint":"enabled","HttpPutResponseHopLimit":2,"HttpTokens":"required"}' --private-dns-name-options '{"HostnameType":"ip-name","EnableResourceNameDnsARecord":false,"EnableResourceNameDnsAAAARecord":false}' --maintenance-options '{"AutoRecovery":"disabled"}' --count "1"
+
+
+###  This one has the right subnet, with one big cidr.   FAIL
+aws ec2 run-instances --image-id "ami-06c8f2ec674c67112" --instance-type "t2.micro" --key-name "leam_sol_arch" --network-interfaces '{"SubnetId":"subnet-0c3d8ba65a3d9d63f","AssociatePublicIpAddress":true,"DeviceIndex":0,"PrivateIpAddresses":[{"Primary":true,"PrivateIpAddress":"192.168.1.25"}],"Groups":["sg-0a45913a0cdcbb466"]}' --credit-specification '{"CpuCredits":"standard"}' --tag-specifications '{"ResourceType":"instance","Tags":[{"Key":"Name","Value":"jump_001"}]}' --metadata-options '{"HttpEndpoint":"enabled","HttpPutResponseHopLimit":2,"HttpTokens":"required"}' --private-dns-name-options '{"HostnameType":"ip-name","EnableResourceNameDnsARecord":false,"EnableResourceNameDnsAAAARecord":false}' --count "1"
+
+
+####  Less restriction, same SG/VPC   FAIL
+aws ec2 run-instances --image-id "ami-06c8f2ec674c67112" --instance-type "t2.micro" --key-name "leam_sol_arch" --block-device-mappings '{"DeviceName":"/dev/xvda","Ebs":{"Encrypted":false,"DeleteOnTermination":true,"Iops":3000,"SnapshotId":"snap-07dc5b1067785a67f","VolumeSize":8,"VolumeType":"gp3","Throughput":125}}' --network-interfaces '{"SubnetId":"subnet-0c3d8ba65a3d9d63f","AssociatePublicIpAddress":true,"DeviceIndex":0,"Groups":["sg-0a45913a0cdcbb466"]}' --credit-specification '{"CpuCredits":"standard"}' --tag-specifications '{"ResourceType":"instance","Tags":[{"Key":"Name","Value":"jump_test"}]}' --metadata-options '{"HttpEndpoint":"enabled","HttpPutResponseHopLimit":2,"HttpTokens":"required"}' --private-dns-name-options '{"HostnameType":"ip-name","EnableResourceNameDnsARecord":false,"EnableResourceNameDnsAAAARecord":false}' --count "1"
+
+#### Pure defaults, new SG with inbound SSH, PASS
+aws ec2 create-security-group --group-name "launch-wizard-1" --description "launch-wizard-1 created 2025-05-29T13:54:23.964Z" --vpc-id "vpc-0b4393076066e83c8"
+aws ec2 authorize-security-group-ingress --group-id "sg-preview-1" --ip-permissions '{"IpProtocol":"tcp","FromPort":22,"ToPort":22,"IpRanges":[{"CidrIp":"0.0.0.0/0"}]}'
+aws ec2 run-instances --image-id "ami-06c8f2ec674c67112" --instance-type "t2.micro" --key-name "leam_sol_arch" --network-interfaces '{"SubnetId":"subnet-0843f0e89ed75924f","AssociatePublicIpAddress":true,"DeviceIndex":0,"Groups":["sg-preview-1"]}' --credit-specification '{"CpuCredits":"standard"}' --tag-specifications '{"ResourceType":"instance","Tags":[{"Key":"Name","Value":"jump_default"}]}' --metadata-options '{"HttpEndpoint":"enabled","HttpPutResponseHopLimit":2,"HttpTokens":"required"}' --private-dns-name-options '{"HostnameType":"ip-name","EnableResourceNameDnsARecord":false,"EnableResourceNameDnsAAAARecord":false}' --count "1"
+
+
+#### 192.168 CIDR, Mostly default, new SG with inbound SSH, default subnet,   FAIL
+aws ec2 create-security-group --group-name "jump_access_test_001" --description "Default CIDR, SSH in" --vpc-id "vpc-081f4e06744552e2a"
+aws ec2 authorize-security-group-ingress --group-id "sg-preview-1" --ip-permissions '{"IpProtocol":"tcp","FromPort":22,"ToPort":22,"IpRanges":[{"CidrIp":"0.0.0.0/0","Description":"default cidr ssh in"}]}'
+aws ec2 run-instances --image-id "ami-06c8f2ec674c67112" --instance-type "t2.micro" --key-name "leam_sol_arch" --network-interfaces '{"SubnetId":"subnet-0c3d8ba65a3d9d63f","AssociatePublicIpAddress":true,"DeviceIndex":0,"Groups":["sg-preview-1"]}' --credit-specification '{"CpuCredits":"standard"}' --tag-specifications '{"ResourceType":"instance","Tags":[{"Key":"Name","Value":"jump_test_002"}]}' --metadata-options '{"HttpEndpoint":"enabled","HttpPutResponseHopLimit":2,"HttpTokens":"required"}' --private-dns-name-options '{"HostnameType":"ip-name","EnableResourceNameDnsARecord":false,"EnableResourceNameDnsAAAARecord":false}' --count "1"
+
+
+SSH Access
+
+Create the access key, a pem file.
+
+
+SSH using the pem file.
+ssh -i  ~/.aws/leam_sol_arch.pem ec2-user@ec2-3-147-13-127.us-east-2.compute.amazonaws.com
+
+
+ssh -i  ~/.aws/leam_sol_arch.pem ec2-user@ec2-3-142-235-229.us-east-2.compute.amazonaws.com
+ssh -i  ~/.aws/leam_sol_arch.pem ec2-user@ec2-3-140-251-16.us-east-2.compute.amazonaws.com
+
+ec2-3-140-251-16.us-east-2.compute.amazonaws.com

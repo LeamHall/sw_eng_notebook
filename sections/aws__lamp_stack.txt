@@ -1,0 +1,53 @@
+AWS  LAMP Stack on EC2
+
+Setting up a LAMP stack with cloud-init on Amazon Linux 2023
+
+
+References:
+  https://docs.aws.amazon.com/linux/al2023/ug/ec2-lamp-amazon-linux-2023.html
+  https://docs.aws.amazon.com/linux/al2023/ug/SSL-on-amazon-linux-2023.html
+  https://cloudinit.readthedocs.io/en/latest/index.html
+  https://docs.aws.amazon.com/linux/al2/ug/amazon-linux-cloud-init.html
+  https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html
+
+
+Cloud-init User Data Script
+
+#!/bin/bash
+dnf upgrade -y
+dnf install -y httpd wget php-fpm php-mysqli php-json php php-devel
+dnf install -y mariadb105-server
+echo "<?php phpinfo(); ?>" > /var/www/html/phpinfo.php
+usermod -a -G apache ec2-user
+chown -R ec2-user:apache /var/www
+chmod 2775 /var/www && find /var/www -type d -exec chmod 2775 {} \;
+find /var/www -type f -exec chmod 0664 {} \;
+systemctl start httpd
+systemctl enable httpd
+systemctl start mariadb
+
+
+Post-launch configuration (on the host)
+
+sudo mysql_secure_installation
+systemctl enable mariadb
+
+
+Security Group Configuration
+
+If there is no inbound rule to allow HTTP (port 80) connections, you must add the rule now. Choose the link for the security group. Add a new inbound security rule with the following values:
+    Type: HTTP
+    Protocol: TCP
+    Port Range: 80
+    Source: Custom
+
+
+Testing
+
+http://my.public.dns.amazonaws.com/phpinfo.php
+
+
+Cloud-init Logs
+
+  - /var/log/cloud-init-output.log
+  - /var/lib/cloud/instances/<instance-id>/<script>

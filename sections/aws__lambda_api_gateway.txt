@@ -1,0 +1,119 @@
+AWS  Lambda and API Gateway
+
+Building a Proof of Concept Character Generator
+ with AWS Lambda and AWS API Gateway
+
+This assumes you have an AWS account. Most everything should be available
+under the Free tier of services.
+
+To get a free AWS account:
+  https://aws.amazon.com
+  "Create an AWS Account"
+
+  If you are an educator, U.S. veteran, or student, check out:
+    https://aws.amazon.com/education/awseducate
+
+
+All actions will be done from the AWS management console.
+  To find a specific service, put the service name in the search
+    bar at the top of the menu bar. Or uses the "Services" drop down
+    on the top left of the menu bar.
+
+  Each Section below uses the service name as the main header.
+
+  The '->' notation is "then select", so the English sentence
+    "Select 'Roles', then select 'Create Role' is:
+      'Roles' -> 'Create role'
+
+  The 'ctrl-s' notation is for 'hold down the control key and press the
+    "s" on your keyboard'. This is used to save the code file after an edit.
+
+This also assumes a decent level of "figure it out", either by searching or
+  poking around. I'm just learning it myself, so please don't think I know
+  it all. Heck, I'm surprised I know this much.
+
+
+IAM
+
+Do this first, it'll make life a lot easier.
+
+Left menu 'Access Management' -> 'Roles' -> 'Create role'
+
+The 'AWS Service' block is highlighted by default. Under
+'Choose a use case', under 'Common use cases', select 'Lambda'.
+Click 'Next:Permissions'
+Under 'Attach permissions policies', in the 'Filter policies' search bar:
+  Enter 'AWSLambdaBasicExecutionRole', and select the checkbox next to it.
+  Enter 'AWSXRayDaemonWriteAccess', and select the checkbox next to it.
+    [LH] Not sure if this is needed, but it was on the tutorial.
+Click 'Next:Tags'
+Click 'Next:Review'
+In 'Role name' enter 'chargen', without the quotes.
+Click 'Create role'
+
+
+Lambda
+
+I'm using Python 3.8, one of the semi-default runtimes. Use whatever floats
+  your boat.
+
+On the Lambda dashboard, 'Create function'. For the next page options:
+  'Author from scratch'  # Looks to be the initial default.
+  Under 'Basic information': 'Function name' is 'chargen',
+    'Runtime' is 'Python 3.8'
+  Under 'Permissions', 'Change default execution role',
+    select 'Use an existing role'
+    In the 'Existing role' dropdown, select 'chargen'.
+  Select 'Create function'
+
+This gives you a cool IDE at the bottom, if you like IDEs.
+
+Under 'Code source', select the file 'lambda_function.py'. Right
+  click it -> 'Open'. In the tab to the right, you'll see some basic code.
+Remove it. Copy the 'first_code/lambda_function.py' from my repo into your
+  lambda_function.py IDE.
+'ctrl-s', then 'Deploy'.
+The first time you click 'Test', it will take you to 'Configure test event'.
+In 'Event name', enter 'testchargen', then 'Create'.
+Select 'Test', and it will give you a new tab, 'Execution results'.
+In the 'Response' section, you should see a JSON 'status code' of 200, and a
+  'body' result. The body should look like the response you returned.
+
+This should work. If it doesn't, click 'Monitor' -> 'Logs' -> 'LogStream' for
+  the most recent log event. On the last log line, click the three dots to the
+  far right, and it should expand the line.
+
+Make note of the 'Copy ARN' button on the function dashboard.
+
+
+API Gateway
+
+When you move from Lambda to API Gateway, open it up in a new tab.
+  You'll need data from the Lambda tab.
+
+Under 'APIs', click 'Create API', then 'HTTP API' -> 'Build'.
+On the 'Create an API' page, under 'Integrations', click 'Add integration'.
+Choose 'Lambda', and then copy in the ARN from your Lambda function.
+In 'API name', put 'chargen', then click 'Next'.
+On the 'Configure routes' page, click 'Next'.
+On the 'Define stages' page, click 'Next'.
+On the 'Review and create' page, click 'Create'.
+Click the 'Invoke URL' URL, it won't work.
+Add '/chargen' to the URL, it should work.
+
+
+HTML
+
+You can add that URL as an href tag, or whatever you like. It works on
+  static pages like Github pages.
+
+
+Next steps
+
+You may prefer another language, or a more complex character generation
+  system. This just connects some of the dots, and hopefully does so in
+  a way that lets you build your own thing.
+I'm going to be extending this with some database support for various names,
+  and whatever else I can think of. The 'first_code/lambda_function.py should
+  get you going, but my new stuff and changes are in the 'code/' directory.
+Engage your creativity and see what happens.

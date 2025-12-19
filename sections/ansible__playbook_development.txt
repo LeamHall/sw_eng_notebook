@@ -1,0 +1,52 @@
+Ansible  Playbook Development
+
+Developing a semi-complex Ansible playbook
+
+Ansible is a great tool for sysadmin work at scale. It's also very good at sysadmin work in the small; playbooks function as executable documentation and let you grow the project incrementally. For this tutorial we'll use the task of compiling Python as our example.
+
+If you've been developing for a while then you have probably started developing your "style". Part of my style is to approach a new challenge one small bit at a time. Often I will work on something similar to figure out parts of it, and then approach the main task. In this instance I have already figured out how to compile Python via a shell script, but I want to put it into Ansible. As I do each step I will test it to make sure the results are what I expect. Then I'll go on to the next task.
+
+The first task is to map out the tasks needed. The map is a living document. Figure out what you know that you need to do and that will lead you to things you need but didn't know about. If you've never looked at Mind Mapping, now is a good time. The tasks will have relationships and dependencies so get a good map and then follow it. I tend to start at the top and add those "unknowns" that I discover along the way.
+
+Here's the text based version of my map:
+
+	install packages
+		group python_dev (?)
+		group_vars python_dev_apt (?)
+		update packages
+		set path (?)
+
+	directories
+		git repo
+		logs (bring to local host?)
+		save log as nodename_pythonversion_<cmd>_datestamp.log
+
+	git
+		cd to git dir
+		pull <target>
+		? how to specify specific commit?
+
+	copy in enable_test_zipfile64.py
+
+	make
+		Look for existing make role
+		Lots of tasks
+		fail early!
+
+	test (?)
+
+
+Ensure the host and group is in the inventory. The inventory can be set by whichever ansible.cfg you use locally. Create a group and put one host in it. This lets us build the playbook with the least amount of collateral damage should things go wrong. In this case I wound up changing the group name to compile_python and I use it for group_vars and such.
+
+
+Initialize the role directory
+	cd playbooks
+	ansible-galaxy role init --init-path roles/ compile_python
+
+
+Create group vars. Nodes need specific software to compile, and Python uses even more if you want to enable different things. Since I'm testing the Python compile results itself then the more that gets built the more coverage we have on tests. If you're building something else for a specific task then you can reduce the list to just what is needed for your project.
+ - playbooks/roles/compile_python/vars/main.yml
+ - - apt_packages_to_add, give list
+
+
+??? vars_prompt for git commit to clone?

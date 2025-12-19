@@ -1,0 +1,73 @@
+Mentoring  90DW Project Skills
+
+Vision
+
+Participants enter the project with some coding skills, and
+a desire to actively participate in an Open Source project.
+They will be mentored for 90 days, and will end with a
+personalized project, and the base skills required to be an
+open source contributor.
+
+
+Goal
+
+Participant will gain useful project skills.
+
+  - Team Communication
+  - Version Control
+  - Code Reading
+  - Test Driven Development
+  - Documentation
+  - Packaging and Deployment
+
+
+Method
+
+Using an existing Ruby based project, the participant will be
+mentored through each skill area.
+
+
+Process
+
+Participants will fork the project repository. Each week they
+will get an e-mail with an area to focus on, and a challenge
+to accomplish. The e-mails are conversations, and everyone is
+encouraged to help others while facing their own challenges.
+
+The project lead will publish times he will be available via
+IRC (Freenode#ruby).
+
+
+Money
+
+There is no charge for participation. The project lead, or
+other volunteer mentors, will not ask for nor accept financial
+remuneration.
+
+Participation requires time, effort, and sometimes the purchase
+of resources like books or classes. The project lead does not
+sell resources they recommend, nor do they receive financial
+compensation for the recommendation.
+
+
+Language
+
+Noun:  English is the project language for this iteration. However,
+if someone's English skills are imperfect, they are still encouraged
+to participate. For the student willing to do the work, a way can
+be found.
+
+Verb:  All communications between the project lead, participants, and
+volunteer mentors will be encouraging, helpful, honest, and friendly.
+
+
+Licensing and Ownership
+
+The project codebase is Open Source, and licensed under the
+"Open Works License" (version 0.9.4, or latest). Participants
+are encouraged, but not required, to participate in the Open
+Source movement. Participants will retain ownership of derivative
+works they make of the project. The project codebase
+itself remains under the Open Works License; participants
+agree that if they contribute code to the project, their
+contributed code falls under the same license as the project.

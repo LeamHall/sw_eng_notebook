@@ -1,0 +1,29 @@
+Django  Ansible Builder
+
+REMOVE THE DEFAULT ADMIN USER!!
+
+The code provided has a default admin user so that you can get into things
+quickly, without having to be on the command-line. However, that means the
+default username and password are stored in the clear. Create your own
+admin user, and then remove the default.
+
+
+Using django_builder
+
+The playbook uses a group named 'django', so you need to either change that to whatever you like, or create your inventory.
+
+extra-vars:
+ - repo_name is where the repo will be created.
+ - repo must be a valid git repo
+
+ansible-playbook playbooks/django_builder.yml -i inventory/hosts --limit="localhost" --extra-vars "repo_name=fred repo=git@gitlab.com:leam.hall/django_builder.git"
+
+
+Using the scrubber
+
+The playbook uses a group named 'django', so you need to either change that to whatever you like, or create your inventory.
+
+The repo_name extra-var is where it will look for the docker_compose.yml file.
+
+Example:
+ansible-playbook playbooks/docker_scrubber.yml --limit="localhost" --extra-vars "repo_name=fred" -i inventory/hosts

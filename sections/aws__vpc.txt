@@ -1,0 +1,64 @@
+AWS  VPC and Networking
+
+Virtual Private Cloud Overview
+
+A Virtual Private Cloud (VPC) isolates your servers from everyone else. You will typically use a private IP address range (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16). You can build isolated subnets within the VPC's IP range. For example, a three tier web app typically uses Web, Middleware, and DB subnets.
+
+On the AWS Management Console:
+ - In the Search bar at the top, enter VPC and select the VPC option given.
+ - On the VPC Dashboard, select "Create VPC". This will create a VPC in the region you are logged into.
+ - Select the IPv4 CIDR block you want to use.
+ - Drop the "Number of Availablity Zones (AZs)" to 1.
+
+
+Network Components
+
+To ensure you can reach your nodes in the VPC, and the nodes can reach wherever they need, you create Network Access Control Lists (NACLs), Security Groups (SGs), Route Tables, and an Internet Gateway (IGW).
+
+NACLs are stateless, apply at the Subnet level, and default to "Any In/Any Out". Rules are applied in order until a match is found.
+
+SGs are stateful, apply to the EC2 instance, only have "Allow" rules, and all rules are applied equally.
+
+An IGW applies to the VPC.
+
+Route Tables apply in the VPC, and can direct traffic to the IGW.
+
+
+Creating a VPC via CLI (Basic)
+
+aws ec2 create-vpc --cidr-block "192.168.1.0/24" --instance-tenancy "default"
+aws ec2 modify-vpc-attribute --vpc-id "preview-vpc-1234" --enable-dns-hostnames '{"value":true}'
+aws ec2 describe-vpcs --vpc-ids "preview-vpc-1234"
+aws ec2 create-vpc-endpoint --vpc-id "preview-vpc-1234" --service-name "com.amazonaws.us-east-2.s3"
+aws ec2 create-subnet --vpc-id "preview-vpc-1234" --cidr-block "192.168.1.0/28" --availability-zone "us-east-2a"
+aws ec2 create-subnet --vpc-id "preview-vpc-1234" --cidr-block "192.168.1.128/26" --availability-zone "us-east-2a"
+aws ec2 create-internet-gateway
+aws ec2 attach-internet-gateway --internet-gateway-id "preview-igw-1234" --vpc-id "preview-vpc-1234"
+aws ec2 create-route-table --vpc-id "preview-vpc-1234"
+aws ec2 create-route --route-table-id "preview-rtb-public-0" --destination-cidr-block "0.0.0.0/0" --gateway-id "preview-igw-1234"
+aws ec2 associate-route-table --route-table-id "preview-rtb-public-0" --subnet-id "preview-subnet-public-0"
+aws ec2 create-route-table --vpc-id "preview-vpc-1234"
+aws ec2 associate-route-table --route-table-id "preview-rtb-private-1" --subnet-id "preview-subnet-private-1"
+aws ec2 describe-route-tables --route-table-ids  "preview-rtb-private-1"
+aws ec2 modify-vpc-endpoint --vpc-endpoint-id "preview-vpce-1234" --add-route-table-ids "preview-rtb-private-1"
+
+
+Creating a VPC via CLI (With Tags)
+
+##  This version includes proper tagging and naming for better resource management.
+
+aws ec2 create-vpc --cidr-block "192.168.1.0/24" --instance-tenancy "default" --tag-specifications '{"resourceType":"vpc","tags":[{"key":"Name","value":"dev_001-vpc"}]}'
+aws ec2 modify-vpc-attribute --vpc-id "preview-vpc-1234" --enable-dns-hostnames '{"value":true}'
+aws ec2 describe-vpcs --vpc-ids "preview-vpc-1234"
+aws ec2 create-vpc-endpoint --vpc-id "preview-vpc-1234" --service-name "com.amazonaws.us-east-2.s3" --tag-specifications '{"resourceType":"vpc-endpoint","tags":[{"key":"Name","value":"dev_001-vpce-s3"}]}'
+aws ec2 create-subnet --vpc-id "preview-vpc-1234" --cidr-block "192.168.1.0/28" --availability-zone "us-east-2a" --tag-specifications '{"resourceType":"subnet","tags":[{"key":"Name","value":"dev_001-subnet-public1-us-east-2a"}]}'
+aws ec2 create-subnet --vpc-id "preview-vpc-1234" --cidr-block "192.168.1.128/28" --availability-zone "us-east-2a" --tag-specifications '{"resourceType":"subnet","tags":[{"key":"Name","value":"dev_001-subnet-private1-us-east-2a"}]}'
+aws ec2 create-internet-gateway --tag-specifications '{"resourceType":"internet-gateway","tags":[{"key":"Name","value":"dev_001-igw"}]}'
+aws ec2 attach-internet-gateway --internet-gateway-id "preview-igw-1234" --vpc-id "preview-vpc-1234"
+aws ec2 create-route-table --vpc-id "preview-vpc-1234" --tag-specifications '{"resourceType":"route-table","tags":[{"key":"Name","value":"dev_001-rtb-public"}]}'
+aws ec2 create-route --route-table-id "preview-rtb-public-0" --destination-cidr-block "0.0.0.0/0" --gateway-id "preview-igw-1234"
+aws ec2 associate-route-table --route-table-id "preview-rtb-public-0" --subnet-id "preview-subnet-public-0"
+aws ec2 create-route-table --vpc-id "preview-vpc-1234" --tag-specifications '{"resourceType":"route-table","tags":[{"key":"Name","value":"dev_001-rtb-private1-us-east-2a"}]}'
+aws ec2 associate-route-table --route-table-id "preview-rtb-private-1" --subnet-id "preview-subnet-private-1"
+aws ec2 describe-route-tables --route-table-ids  "preview-rtb-private-1"
+aws ec2 modify-vpc-endpoint --vpc-endpoint-id "preview-vpce-1234" --add-route-table-ids "preview-rtb-private-1"

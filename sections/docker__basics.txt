@@ -1,0 +1,6 @@
+Docker  Basics
+
+Basic docker-compose usage:
+
+  docker-compose build
+  docker-compose up

@@ -1,0 +1,66 @@
+Ansible  Build Infrastructure
+
+Build Infrastructure Overview
+
+* Webserver for Kickstarts
+  https://192.168.1.200/ks
+
+  See script "ks_writer.pl" at https://github.com/LeamHall/ks_writer
+  Kickstart files are text and readable. You can change default
+  configurations by editing the files in "input/"
+
+
+* ISO based build repo
+  http://192.168.1.200/repo/[6,7]/Server
+
+  The Kickstart points here for RPM packages. Having it a loop
+  mounted ISO image makes life easy. Since I used the same image
+  for the boot disk in the KVM files it eliminates kernel mis-
+  matches.
+
+
+* The Kickstart files are very minimal. The assumption is that
+  Ansible or similar will be used to configure each host.
+
+
+* For KVM based hosts I use the same ISO as the Server repo. See
+  the "kvm_writer.pl" script at  https://github.com/LeamHall/ks_writer
+
+
+* When using Ansible you have to specify hosts in /etc/ansible/hosts.
+  A nodename (other than localhost) must be in there to hit via ansible,
+  the node name must also be findable via DNS, /etc/hosts, or the like.
+  Groups are useful in that you can affect single hosts or entire
+  groups. Grouping is a study unto itself.
+
+    [b2532_vms]
+    web01
+    web02
+    db01
+    db02
+
+    [b2532_web]
+    web01
+    web02
+
+    [b2532_db]
+    db01
+    db02
+
+
+* Sample command. This sets the basic configs:
+
+  ansible-playbook playbooks/new_server.yml -K --limit=b2532_vms
+
+  For the above to work:
+    Must be run as an active account on each host.
+    That account must have ssh access.
+    That account must have sudo rights.
+
+
+Kickstart Boot Options
+
+If the webservice on the Kickstart server is using SSL, add "s" to "http"
+and "noverifyssl" to the options.
+
+ ks=https://192.168.1.50/ks/node_ks.cfg noverifyssl ip=192.168.1.50 netmask=255.255.255.0 gateway=192.168.1.1 ifdevice=eth0

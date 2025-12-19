@@ -1,0 +1,65 @@
+AWS  CLI Operations
+
+Deleting AWS resources via the CLI
+
+You can delete the environment parts via the CLI, but many have dependencies that have to be deleted first. This doc shows how to delete the parts, in order.
+
+
+Security Groups
+
+for sg in `aws ec2 describe-security-groups |grep GroupId |sed 's/\"/ /g' |awk '{ print $3}'`; do aws ec2 delete-security-group --group-id $sg; done
+
+
+NACLs
+
+for nacl in `aws ec2 describe-network-acls --output text |grep NETWORKACLS |awk '{ print $3}'`; do aws ec2 delete-network-acl --network-acl-id $nacl; done
+
+
+Subnets
+
+aws ec2 describe-subnets
+
+for sn in `aws ec2 describe-subnets --output text |grep arn |awk '{ print $15 }'`; do aws ec2 delete-subnet --subnet-id $sn; done
+
+
+IGW
+
+aws ec2 describe-internet-gateways --output text
+aws ec2 describe-internet-gateways --output text |grep INTERN
+aws ec2 describe-internet-gateways --output text |grep INTERN | awk '{ print $2 }'
+
+ - Detach from VPC
+aws ec2 detach-internet-gateway --internet-gateway-id igw-062fbdd313ba911ca --vpc-id vpc-081f4e06744552e2a
+aws ec2 detach-internet-gateway --internet-gateway-id igw-039d958e04c1bf8b9 --vpc-id vpc-0b4393076066e83c8
+
+- Delete
+for igw in `aws ec2 describe-internet-gateways --output text |grep INTERN | awk '{ print $2 }'`; do aws ec2 delete-internet-gateway --internet-gateway-id $igw; done
+
+
+Route Tables
+
+aws ec2 describe-route-tables --output text
+aws ec2 describe-route-tables --output text |grep ROUTETABLES
+aws ec2 describe-route-tables --output text |grep ROUTETABLES |awk '{print $3}'
+aws ec2 describe-route-tables --output text |grep rtb
+aws ec2 describe-route-tables --output text |grep rtbassoc
+aws ec2 describe-route-tables --output text |grep rtbassoc |awk '{ print $3}'
+for rtb in `aws ec2 describe-route-tables --output text |grep ROUTETABLES |awk '{print $3}'`; do aws ec2 delete-route-table --route-table-id $rtb; done
+for rtb in `aws ec2 describe-route-tables --output text |grep ROUTETABLES |awk '{print $3}'`; do aws ec2 disassociate-route-table --route-table-id $rtb; done
+for rtb in `aws ec2 describe-route-tables --output text |grep rtbassoc |awk '{ print $3}'`; do aws ec2 disassociate-route-table --association-id $rtb; done
+
+
+VPC Endpoints
+
+for vpce in `aws ec2 describe-vpc-endpoints --output text |grep vpce |awk '{ print $9}'`; do aws ec2 delete-vpc-endpoints --vpc-endpoint-ids $vpce ; done
+- This got an "unsuccessful", not sure why.
+
+
+VPCs (VPCs are last, you have to delete SGs, VPCEs, etc)
+
+aws ec2 describe-vpcs --output text
+aws ec2 describe-vpcs --output text |grep ASSOCIATIONSET |awk '{ print $2}'
+aws ec2 describe-vpcs --output text |grep VPCS
+aws ec2 describe-vpcs --output text |grep VPCS | awk '{ print $NF}'
+
+for v in `aws ec2 describe-vpcs --output text |grep VPCS | awk '{ print $NF}'`; do aws ec2 delete-vpc --vpc-id $v; done

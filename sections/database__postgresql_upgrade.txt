@@ -1,0 +1,68 @@
+Database  PostgreSQL Upgrade Testing
+
+Testing various iterations of the databases, to ensure upgrades work.
+
+
+General Notes
+
+All of this is done as a user, so make sure the target directory is user
+  writeable.
+This assumes a ../../logs directory that the user can log into.
+It also builds everything as the user.
+This stores the data in the same directory as the application.
+  - Not a great idea for production.
+The default Postgres port is 5432. Since we have two (or more) instances running,
+  we alter the port for each of them.
+
+
+Get PostgreSQL
+
+https://www.postgresql.org/ftp/source/
+
+
+Build
+
+The <YYYYMMDD_HHMM> timestamp is for the logs.
+cd /path/to/downloaded/postgres
+
+This will configure, compile, and start the database.
+/path/to/commands/setup_db.sh
+
+
+Load the data
+
+This assumes you have a working SQL file to load from.
+bin/psql postgres -f <db>.sql -p <port>
+
+Make backup for the other instance
+bin/pg_dump -h localhost -p <port> -C -F p -b -v -f <db>_backup.sql <db>
+
+
+Go to other DB instance and restore
+cd /usr/local/src/pgsql_<version>
+bin/psql postgres  -f /path/to/<db>_backup.sql -p <port>
+
+Research and plan for using psycopg3
+https://docs.djangoproject.com/en/4.2/releases/4.2/#psycopg-3-support
+
+
+Compatibilities
+
+https://www.postgresql.org/docs/11/release-11.html
+https://www.postgresql.org/docs/12/release-12.html
+https://www.postgresql.org/docs/13/release-13.html
+https://www.postgresql.org/docs/14/release-14.html
+https://www.postgresql.org/docs/15/release-15.html
+
+11.1  pg_stat_statements
+      run    ALTER EXTENSION pb_stat_statements UPDATE
+      on all databases where pg_stat_statements is installed
+
+11.6  If using contrib/intarray with GiST index, and use <@ operator,
+      see <@ entry in changelog.
+
+11.11 reindex
+
+11.14 If using physical replication, update standby servers before
+      primary server
+      Reindex after updating.

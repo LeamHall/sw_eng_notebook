@@ -1,0 +1,60 @@
+Linux  Kickstart and Automated Installs
+
+How to use Kickstart
+
+
+For RHEL/CentOS 6
+
+  ks=https://192.168.1.50/ks/node_ks.cfg noverifyssl ip=192.168.1.50 netmask=255.255.255.0 gateway=192.168.1.1 ksdevice=eth0
+
+
+If the webservice on the Kickstart server is using SSL:
+  Add "s" to "http" and add "noverifyssl" to the options.
+
+  ks=https://192.168.1.50/ks/node_ks.cfg noverifyssl ip=192.168.1.50 netmask=255.255.255.0 gateway=192.168.1.1 ksdevice=eth0
+
+
+For RHEL/CentOS 7
+
+  Note that there is a bug in CentOS 7, the same date version (1804, or 1810) ISO image must be used for both USB boot and Server Repository.
+
+  I'm told this could be shorter, but haven't yet proven that. This works.
+
+  vmlinuz initrd=initrd.img inst.stage2=http://192.168.1.200/repo/centos/7/Server inst.repo=http://192.168.1.200/repo/centos/7/Server inst.ks=http://192.168.1.200/ks/josiah_ks.cfg
+
+
+For Fedora 37
+
+  When the boot menu gives the install, trouble-shoot, etc, option,
+  - Select "Install ..."
+  - Hit "e" for "edit"
+  - Change the "linux" line to the following
+    linux /images/pxeboot/vmlinuz inst.stage2=http://192.168.1.50/repo/f37 inst.repo=http://192.168.1.50/repo/f37 inst.ks=http://192.168.1.50/ks/f37_ks.cfg
+
+
+KS Writer Tool
+
+Perl script to allow standardized semi-custom Kickstart files.
+
+Input files are in ~/input, output files are in ~/output.  :)
+
+    Usage: ./ks_writer.pl --config data/ks_data.csv
+
+    -c/--config <CONFIG FILE>
+
+
+KVM Writer Tool
+
+Perl script to generate standardized semi-custom KVM creation scripts.
+
+Input file is input/setup_new_virtual.sh. Edit it to your needs, keeping
+the UPPERCASE words as is.
+
+  Usage: ./kvm_writer.pl --config data/ks_data.csv
+
+    -c/--config <CONFIG FILE>
+
+
+Further Reading
+
+https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/installation_guide/sect-kickstart-howto

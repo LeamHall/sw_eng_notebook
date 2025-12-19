@@ -1,0 +1,156 @@
+AWS  Terraform Infrastructure as Code
+
+Terraform Module Pattern
+
+This example demonstrates how to build AWS infrastructure using Terraform modules. The pattern separates configuration (build_main/) from reusable infrastructure code (modules/targets/).
+
+
+Project Structure
+
+build_aws_nodes/
+├── build_main/
+│   ├── main.tf          # Root configuration, provider setup, module invocation
+│   ├── variables.tf     # Root-level variables (currently empty)
+│   └── outputs.tf       # Exposes module outputs to user
+└── modules/
+    └── targets/
+        ├── main.tf      # Module resources: security groups, key pairs, instances
+        ├── variables.tf # Module input variables
+        └── outputs.tf   # Module output values
+
+
+Root Configuration (build_main/main.tf)
+
+provider "aws" {
+    region = "us-east-2"
+}
+
+module "targets" {
+    source = "../modules/targets"
+
+    project_name = "python_testing"
+    instance_type = "t2.micro"
+    key_name   = "aws_key"
+    public_key = "really long string"
+}
+
+
+Key Concepts:
+- Provider block: Configures AWS region
+- Module block: Invokes the targets module with parameters
+- Variables passed: project_name, instance_type, key_name, public_key
+
+
+Root Outputs (build_main/outputs.tf)
+
+output "ubuntu_public_ip" {
+    description = "IP address of the instance"
+    value   = module.targets.ubuntu_public_ip
+}
+
+output "aws_linux_public_ip" {
+    description = "IP address of the instance"
+    value   = module.targets.aws_linux_public_ip
+}
+
+Outputs reference module outputs using module.MODULE_NAME.OUTPUT_NAME syntax.
+
+
+Module Variables (modules/targets/variables.tf)
+
+variable "project_name" {
+    description = "The project name"
+    type        = string
+}
+
+variable "instance_type" {
+    description = "The type of EC2 instance"
+    type        = string
+}
+
+Variables define the module interface - what configuration the module accepts.
+
+
+Module Resources (modules/targets/main.tf)
+
+The module creates:
+1. Security group with SSH access (port 22 from anywhere)
+2. SSH key pair resource
+3. Two EC2 instances (Ubuntu and Amazon Linux)
+
+resource "aws_security_group" "instance" {
+  name  = var.project_name
+
+  egress = [{
+    cidr_blocks   = [ "0.0.0.0/0" ]
+    from_port     = 0
+    to_port       = 0
+    protocol      = "-1"
+    # ... other fields
+    }]
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_key_pair" "deployer" {
+  key_name   = var.key_name
+  public_key = var.public_key
+}
+
+resource "aws_instance" "ubuntu_target" {
+  ami           = "ami-0c55b159cbfafe1f0"
+  instance_type = var.instance_type
+  key_name      = var.key_name
+
+  vpc_security_group_ids = [aws_security_group.instance.id]
+
+  tags = {
+    Name = "ubuntu_target"
+  }
+
+  connection {
+    type        = "ssh"
+    host        = self.public_ip
+    user        = "leam"
+    private_key = file("/home/leam/.ssh/aws_key")
+    timeout     = "4m"
+  }
+}
+
+
+Module Outputs (modules/targets/outputs.tf)
+
+output "ubuntu_public_ip" {
+    description = "IP address of the instance"
+    value   = aws_instance.ubuntu_target.public_ip
+}
+
+output "aws_linux_public_ip" {
+    description = "IP address of the instance"
+    value   = aws_instance.aws_linux_target.public_ip
+}
+
+Module outputs expose resource attributes for use by the root configuration.
+
+
+Usage
+
+From the build_main/ directory:
+
+terraform init     # Download provider plugins
+terraform plan     # Preview changes
+terraform apply    # Create infrastructure
+terraform destroy  # Remove infrastructure
+
+
+Benefits of Module Pattern
+
+- Reusability: Modules can be used across multiple projects
+- Separation of concerns: Configuration (build_main) separate from resources (modules)
+- Maintainability: Update module logic without changing root configuration
+- Testing: Modules can be tested independently

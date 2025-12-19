@@ -1,0 +1,14 @@
+Testing  Frameworks and Approaches
+
+TDD/BDD
+
+Unit testing
+ - Code coverage reports
+
+Testing frameworks
+
+
+Resources:
+
+  cypress.io
+  cucumber.io

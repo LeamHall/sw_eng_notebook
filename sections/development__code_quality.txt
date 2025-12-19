@@ -1,0 +1,23 @@
+Development  Code Quality
+
+Peer review
+
+Trouble-shooting
+ - small code in a different language
+ - large codebases
+ - documentation (internal to the language/tool)
+ - valuable comments
+
+
+Refactor the code
+ - Extract thoughts and plans from code
+ - Concise but communicative names (methods, objects, variables)
+ - Testability and observability
+ - Performance measurements
+
+Build a complex or large project without third party libraries
+
+Learn cyber security issues for your domain
+
+Resources:
+  "The Pragmatic Programmer: Your Journey to Mastery" by David Thomas and Andrew Hunt
