@@ -40,48 +40,49 @@ Do this first, it'll make life a lot easier.
 Left menu 'Access Management' -> 'Roles' -> 'Create role'
 
 The 'AWS Service' block is highlighted by default. Under
-'Choose a use case', under 'Common use cases', select 'Lambda'.
-Click 'Next:Permissions'
-Under 'Attach permissions policies', in the 'Filter policies' search bar:
+'Choose a use case', under 'Common used services', select 'Lambda'.
+Use Case:  "Lambda", vice "AWSServiceRoleForLambda"
+Click 'Next:'
+Under 'Permissions policies', in the 'Filter policies' search bar:
   Enter 'AWSLambdaBasicExecutionRole', and select the checkbox next to it.
-  Enter 'AWSXRayDaemonWriteAccess', and select the checkbox next to it.
-    [LH] Not sure if this is needed, but it was on the tutorial.
-Click 'Next:Tags'
-Click 'Next:Review'
+Click 'Next'
 In 'Role name' enter 'chargen', without the quotes.
 Click 'Create role'
 
 
 Lambda
 
-I'm using Python 3.8, one of the semi-default runtimes. Use whatever floats
-  your boat.
+I'm using the default Python (3.14) one of the semi-default runtimes. Use whatever floats your boat.
 
 On the Lambda dashboard, 'Create function'. For the next page options:
   'Author from scratch'  # Looks to be the initial default.
   Under 'Basic information': 'Function name' is 'chargen',
-    'Runtime' is 'Python 3.8'
+    'Runtime' is 'Python 3.14'
+Architecture -> arm64 for reduced cost
   Under 'Permissions', 'Change default execution role',
     select 'Use an existing role'
     In the 'Existing role' dropdown, select 'chargen'.
   Select 'Create function'
 
-This gives you a cool IDE at the bottom, if you like IDEs.
+Note that you are in the "Code" tab.
 
-Under 'Code source', select the file 'lambda_function.py'. Right
-  click it -> 'Open'. In the tab to the right, you'll see some basic code.
-Remove it. Copy the 'first_code/lambda_function.py' from my repo into your
-  lambda_function.py IDE.
-'ctrl-s', then 'Deploy'.
-The first time you click 'Test', it will take you to 'Configure test event'.
-In 'Event name', enter 'testchargen', then 'Create'.
-Select 'Test', and it will give you a new tab, 'Execution results'.
-In the 'Response' section, you should see a JSON 'status code' of 200, and a
-  'body' result. The body should look like the response you returned.
+Under 'Code source', select the file 'lambda_function.py'. 
+ - Right click it -> 'Open'. 
+ - In the tab to the right, you'll see some basic code.
+ - Remove it. 
+ - Copy the 'first_code/lambda_function.py' from my repo into your lambda_function.py IDE.
+ - 'ctrl-s', then 'Deploy'.
 
-This should work. If it doesn't, click 'Monitor' -> 'Logs' -> 'LogStream' for
-  the most recent log event. On the last log line, click the three dots to the
-  far right, and it should expand the line.
+Change to the "Test" tab.
+
+The first time you click 'Test', it will take you to 'Create test event'.
+Keep the "Invocation type": "Synchronous" default.
+In 'Event name', enter 'test_chargen', Click "Save", then 'Test'.
+In "Execution function", click "Details"
+You should see a JSON 'status code' of 200, and a 'body' result. The body should look like the response you returned.
+
+# Does this still work?
+This should work. If it doesn't, click 'Monitor' -> 'Logs' -> 'LogStream' for the most recent log event. On the last log line, click the three dots to the far right, and it should expand the line.
 
 Make note of the 'Copy ARN' button on the function dashboard.
 
@@ -89,31 +90,54 @@ Make note of the 'Copy ARN' button on the function dashboard.
 API Gateway
 
 When you move from Lambda to API Gateway, open it up in a new tab.
-  You'll need data from the Lambda tab.
+  - You'll need data from the Lambda tab.
 
-Under 'APIs', click 'Create API', then 'HTTP API' -> 'Build'.
-On the 'Create an API' page, under 'Integrations', click 'Add integration'.
-Choose 'Lambda', and then copy in the ARN from your Lambda function.
-In 'API name', put 'chargen', then click 'Next'.
-On the 'Configure routes' page, click 'Next'.
-On the 'Define stages' page, click 'Next'.
-On the 'Review and create' page, click 'Create'.
-Click the 'Invoke URL' URL, it won't work.
-Add '/chargen' to the URL, it should work.
+Under 'API types', click 'Create HTTP API' 
+Configure API 
+ - API Name: (required)
+ - Keep "IPv4"
+ - Add Integration
+ - - Lambda
+ - - AWS Region: choose your region
+ - - Lambda function: select your function
+ 
+Review and Create
+ - Routes: Edit
 
+Configure routes
+ - Take the default
+ - Review and Create
+
+Create
+
+Routes
+ - Deploy
+
+Deploy API popup
+ - "create a new stage" in the paragraph given
+ - Name: Put in a stage, like "dev"
+ - Description:
+ - Stage deployment
+ - - Enable automatic deployment
+ - Create
+
+Stages
+ - Deploy
+
+That gives you a URL like:   https://<unique_id>.execute-api.<region>.amazonaws.com/<stage>
+ - Add to the end:  /<function>
+
+You can hit that with a browser or curl.
 
 HTML
 
-You can add that URL as an href tag, or whatever you like. It works on
-  static pages like Github pages.
+You can add that URL as an href tag, or whatever you like. It works on static pages like Github pages.
 
 
 Next steps
 
-You may prefer another language, or a more complex character generation
-  system. This just connects some of the dots, and hopefully does so in
-  a way that lets you build your own thing.
-I'm going to be extending this with some database support for various names,
-  and whatever else I can think of. The 'first_code/lambda_function.py should
-  get you going, but my new stuff and changes are in the 'code/' directory.
+You may prefer another language, or a more complex character generation system. This just connects some of the dots, and hopefully does so in a way that lets you build your own thing.
+
+I'm going to be extending this with some database support for various names, and whatever else I can think of. The 'first_code/lambda_function.py should get you going, but my new stuff and changes are in the 'code/' directory.
+
 Engage your creativity and see what happens.
