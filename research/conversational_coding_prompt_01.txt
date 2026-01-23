@@ -2,3 +2,8 @@ Please read @sections/learning* and make suggestions about how to improve the id
 
 The target audience is for someone who knows the basics of programming by finishing at least one tutorial in their language. This isn't to teach programming, but to build fluent, conversational coding in what they learned in a decent initial tutorial. Session length is firm, it is too hard to really focus longer than that. Yes, please add suggestions for test harness coding, test driven development, etc. Assume no IDE, I use vim, others use VCSode, PyCharm, etc. No progress tracking, it is simply a set of drills to solidify the initial language learning. No sample solutions, although learning resources (URLs, books) for each language are fine.
  
+ Please search this repo for any sensitive data such as passwords, AWS keys, PII.
+
+Please change all references to "/home/leam/" to "/home/user/" 
+
+Yes, please change user = "leam" to user = "user"  
