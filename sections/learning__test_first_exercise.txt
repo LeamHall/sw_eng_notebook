@@ -1,0 +1,118 @@
+Learning  Test-First Exercise
+
+Build fluency writing tests before implementation. This exercise
+trains the test-first muscle memory that makes TDD natural.
+
+
+Before you begin
+
+Go:         https://golang.org/pkg/testing/
+Rust:       https://doc.rust-lang.org/book/ch11-01-writing-tests.html
+Python:     https://docs.python.org/3/library/unittest.html
+C:          https://libcheck.github.io/check/ (or assert.h for simple cases)
+Typescript: https://jestjs.io/docs/getting-started
+Perl:       https://perldoc.perl.org/Test::More
+
+
+Exercise 1: Test a Pure Function
+
+Create a test file first (not the implementation).
+
+Write a test that:
+  - Calls a function named `triple` with the integer 4
+  - Asserts the result equals 12
+
+Run the test. Watch it fail (function doesn't exist).
+
+Create the implementation file.
+Write the `triple` function.
+Run the test. Watch it pass.
+
+Add a second test case: triple(0) should equal 0.
+Add a third test case: triple(-3) should equal -9.
+
+
+Exercise 2: Test String Output
+
+Write a test first.
+
+The function `greet` takes a name string.
+It returns "Hello, " followed by the name and an exclamation mark.
+
+Test cases to write before implementing:
+  - greet("World") returns "Hello, World!"
+  - greet("") returns "Hello, !"
+  - greet("Alice") returns "Hello, Alice!"
+
+Implement greet. Make tests pass.
+
+
+Exercise 3: Test Error Conditions
+
+Write tests for a function `divide` that takes two integers.
+It returns the result of dividing the first by the second.
+It should error/fail when the second integer is zero.
+
+Test cases:
+  - divide(10, 2) returns 5
+  - divide(7, 2) returns 3 (integer division)
+  - divide(10, 0) returns an error (test that error is raised/returned)
+
+Implement. Make tests pass.
+
+
+Language-Specific Test Patterns
+
+Go:
+  func TestTriple(t *testing.T) {
+      result := triple(4)
+      if result != 12 {
+          t.Errorf("expected 12, got %d", result)
+      }
+  }
+  Run: go test
+
+Rust:
+  #[cfg(test)]
+  mod tests {
+      use super::*;
+      #[test]
+      fn test_triple() {
+          assert_eq!(triple(4), 12);
+      }
+  }
+  Run: cargo test
+
+Python:
+  import unittest
+  class TestTriple(unittest.TestCase):
+      def test_triple_four(self):
+          self.assertEqual(triple(4), 12)
+  Run: python -m unittest
+
+C (with assert.h):
+  #include <assert.h>
+  int main() {
+      assert(triple(4) == 12);
+      return 0;
+  }
+  Run: compile and execute
+
+Typescript (Jest):
+  test('triple returns 12 for 4', () => {
+      expect(triple(4)).toBe(12);
+  });
+  Run: npx jest
+
+Perl:
+  use Test::More;
+  is(triple(4), 12, 'triple of 4 is 12');
+  done_testing();
+  Run: prove -v filename.t
+
+
+Wrap up
+
+Delete both files. Tomorrow, do it again faster.
+When you can write the test and implementation without pausing,
+move to the next exercise.

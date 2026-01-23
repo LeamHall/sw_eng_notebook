@@ -40,11 +40,30 @@ question is, can you learn it faster? What if you could move some of the
 key skills into the sub-conscious in a week?
 
 
-The Method
+The Exercises
 
-There are three directories: "Common", "Compiled", and "Interpreted". Start
-with the "Foundations.md" project relevant to your language type, and then
-later move to the other projects in your language type, and "Common".
+Foundation (start here)
+  Foundations - core syntax drill
+
+Data Fluency
+  Strings - manipulation and formatting
+  Booleans - logic and control flow
+
+Testing Fluency
+  Test-First - writing tests before code
+
+Applied Skills
+  CLI - command line interfaces
+  File I/O - reading and writing files
+  JSON - data parsing
+  Database - database connections
+
+Language-Specific
+  Pointers (C, Go)
+  Memory and Ownership (C, Rust)
+
+
+The Method
 
 Start with Foundations. Create your file in a temp directory, and follow the
 instructions. Do each task without referencing Stack, IRC, or anything else.
@@ -125,3 +144,24 @@ C
       https://www.amazon.com/dp/0321884922
     Introductory C Programming Specialization
       https://www.coursera.org/specializations/c-programming
+
+Typescript
+    TypeScript Handbook https://www.typescriptlang.org/docs/handbook/
+    Exercism            https://exercism.org/tracks/typescript
+    TypeScript Deep Dive
+      https://basarat.gitbook.io/typescript/
+    Programming TypeScript
+      https://www.amazon.com/dp/1492037656
+
+Rust
+    The Rust Book       https://doc.rust-lang.org/book/
+    Rustlings           https://github.com/rust-lang/rustlings
+    Exercism            https://exercism.org/tracks/rust
+    Rust by Example     https://doc.rust-lang.org/rust-by-example/
+    Programming Rust    https://www.amazon.com/dp/1492052590
+
+Perl
+    Modern Perl         http://modernperlbooks.com/books/modern_perl_2016/
+    Learn Perl          https://www.learn-perl.org/
+    Exercism            https://exercism.org/tracks/perl5
+    Learning Perl       https://www.amazon.com/dp/1492094951

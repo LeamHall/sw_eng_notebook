@@ -1,0 +1,63 @@
+Learning  String Manipulation Exercise
+
+Strings are everywhere. This drill builds fluency with common
+string operations so they become automatic.
+
+
+Exercise 1: Formatting and Interpolation
+
+Create variables:
+  - name (string): your name
+  - age (integer): any number
+  - height (float): any decimal
+
+Print a sentence using string formatting/interpolation:
+  "My name is [name], I am [age] years old and [height] meters tall."
+
+Do NOT concatenate with +. Use your language's formatting mechanism:
+  Go:         fmt.Sprintf or fmt.Printf
+  Rust:       format! macro
+  Python:     f-strings or .format()
+  C:          sprintf or printf
+  Typescript: template literals `${}`
+  Perl:       double-quoted strings with variables
+
+
+Exercise 2: Split and Join
+
+Start with the string: "apple,banana,cherry,date"
+
+Split it into a list/array/slice on the comma.
+Print each fruit on its own line.
+Join the list back together with " | " as separator.
+Print the joined string.
+
+
+Exercise 3: Substring and Search
+
+Start with the string: "The quick brown fox jumps over the lazy dog"
+
+Extract and print:
+  - The first 9 characters ("The quick")
+  - Characters 10-14 ("brown")
+  - The last 8 characters ("lazy dog")
+
+Find and print the position/index of:
+  - "fox"
+  - "cat" (handle "not found")
+
+
+Exercise 4: Case and Trim
+
+Start with the string: "   HeLLo WoRLd   "
+
+Print the string:
+  - With whitespace trimmed from both ends
+  - Converted to all lowercase
+  - Converted to all uppercase
+  - With first letter capitalized (if your language supports it)
+
+
+Wrap up
+
+Review, note what tripped you up, delete the file.

@@ -56,3 +56,33 @@ Make a copy of the file as is, and then run a linter or formatter on the copy.
 See what changed.
 
 Delete the files. If you missed more than one thing, do it again tomorrow.  :)
+
+
+Language Notes
+
+These exercises translate differently across languages. Here are the key
+differences to internalize:
+
+Error Handling
+  Go:         Return (value, error), check `if err != nil`
+  Rust:       Return Result<T, E>, use `match` or `?` operator
+  Python:     Raise exceptions, use try/except
+  C:          Return error codes, check return values, use errno
+  Typescript: Throw exceptions or return union types
+  Perl:       Use eval {} blocks, die/warn, or return undef
+
+Structures and Methods
+  Go:         struct + func (s *Struct) Method()
+  Rust:       struct + impl block
+  Python:     class with __init__ and self
+  C:          struct + separate functions taking struct pointer
+  Typescript: class or interface + type
+  Perl:       package with bless, or Moo/Moose
+
+Key-Value Stores
+  Go:         map[string]string
+  Rust:       HashMap<String, String> (use std::collections)
+  Python:     dict {}
+  C:          No built-in; use array of structs or external library
+  Typescript: Record<string, string> or Map
+  Perl:       hash %name

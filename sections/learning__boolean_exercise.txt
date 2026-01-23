@@ -1,0 +1,65 @@
+Learning  Boolean and Control Flow Exercise
+
+Decision-making code should flow from your fingers without thought.
+This drill builds that fluency.
+
+
+Exercise 1: Boolean Expressions
+
+Create three boolean variables:
+  - is_raining = true
+  - has_umbrella = false
+  - is_weekend = true
+
+Write and print the result of:
+  - is_raining AND has_umbrella
+  - is_raining OR is_weekend
+  - NOT is_raining
+  - (is_raining AND NOT has_umbrella) OR is_weekend
+
+
+Exercise 2: Comparison Chains
+
+Create two integer variables, a = 15, b = 7.
+
+Write expressions that evaluate to true:
+  - a is greater than b
+  - a is not equal to b
+  - a is greater than 10 AND b is less than 10
+  - a plus b equals 22
+
+Write expressions that evaluate to false:
+  - a is less than b
+  - a equals b
+  - a is less than 10 OR b is greater than 20
+
+
+Exercise 3: Branching
+
+Write a function that takes an integer score (0-100).
+
+Return a grade string:
+  - 90 and above: "A"
+  - 80-89: "B"
+  - 70-79: "C"
+  - 60-69: "D"
+  - Below 60: "F"
+
+Test it with: 95, 82, 71, 65, 45
+
+
+Exercise 4: Match/Switch (where applicable)
+
+Write a function that takes a string for day of week.
+Return whether it's a "weekday" or "weekend".
+
+Use match (Rust), switch (Go, C, Typescript), or given/when (Perl).
+Python: use if/elif or match (3.10+).
+
+Handle invalid input by returning "unknown".
+
+
+Wrap up
+
+Delete the file. Note which boolean operators or branching
+syntax you had to think about.

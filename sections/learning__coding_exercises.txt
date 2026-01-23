@@ -118,3 +118,120 @@ Add an int and an * int.
 Increment the original int variable via a pointer to it.
 
 Think about what challenged you, make some notes, and then delete the file.
+
+
+File I/O Exercise
+
+Create a file called fileio with your language extension.
+
+Write to a file
+  Create a string with three lines (use newline characters).
+  Write it to a file called "output.txt".
+  Handle potential errors.
+
+Read from a file
+  Read "output.txt" back into a string.
+  Print the contents.
+  Handle "file not found" error.
+
+Read line by line
+  Read the file line by line.
+  Print each line with a line number prefix.
+
+Clean up
+  Delete "output.txt" from your code.
+
+Delete your code file. Note what syntax you had to look up.
+
+
+JSON/Data Parsing Exercise
+
+Before you begin
+  Go:         encoding/json (standard library)
+  Rust:       serde_json crate
+  Python:     json module (standard library)
+  C:          cJSON or jansson library
+  Typescript: JSON.parse/stringify (built-in)
+  Perl:       JSON or JSON::PP module
+
+Create a file called jsonwork with your language extension.
+
+Define a structure/class for a Person with:
+  - name (string)
+  - age (integer)
+  - active (boolean)
+
+Create a Person instance with your data.
+
+Serialize to JSON
+  Convert the Person to a JSON string.
+  Print it.
+
+Deserialize from JSON
+  Start with this string:
+    {"name": "Alice", "age": 30, "active": true}
+  Parse it into a Person.
+  Print each field.
+
+Handle bad JSON
+  Try to parse this invalid JSON: {"name": "Bob", age: 25}
+  Handle the error gracefully.
+
+Delete the file.
+
+
+Memory Exercise (C and Rust only)
+
+This exercise builds fluency with memory concepts that don't exist
+in garbage-collected languages.
+
+
+C Memory Exercise
+
+Allocate an array
+  Use malloc to allocate an array of 5 integers.
+  Check if allocation succeeded.
+  Fill it with values 1-5.
+  Print each value.
+  Free the memory.
+
+Allocate a string
+  Use malloc to allocate space for a 20-character string.
+  Copy "Hello, Memory!" into it.
+  Print it.
+  Free the memory.
+
+Reallocate
+  Allocate space for 3 integers.
+  Fill with 1, 2, 3.
+  Reallocate to hold 5 integers.
+  Add 4 and 5.
+  Print all five.
+  Free the memory.
+
+
+Rust Ownership Exercise
+
+Move semantics
+  Create a String with "hello".
+  Assign it to a second variable.
+  Try to print the first variable. Note the compiler error.
+  Fix it by cloning instead.
+
+Borrowing
+  Create a String.
+  Write a function that takes a reference (&String) and prints length.
+  Call it twice with the same String (proving you still own it).
+
+Mutable borrowing
+  Create a mutable String.
+  Write a function that takes &mut String and appends " world".
+  Call it, then print the modified string.
+
+Lifetimes (basic)
+  Write a function that takes two string slices (&str).
+  Return the longer one.
+  Add the necessary lifetime annotation.
+
+
+Delete the file.
