@@ -42,8 +42,8 @@ resource "aws_instance" "ubuntu_target" {
   connection {
     type    = "ssh"
     host    = self.public_ip
-    user    = "leam"
-    private_key = file("/home/leam/.ssh/aws_key")
+    user    = "user"
+    private_key = file("/home/user/.ssh/aws_key")
     timeout = "4m"
   }
 }
@@ -62,8 +62,8 @@ resource "aws_instance" "aws_linux_target" {
   connection {
     type    = "ssh"
     host    = self.public_ip
-    user    = "leam"
-    private_key = file("/home/leam/.ssh/aws_key")
+    user    = "user"
+    private_key = file("/home/user/.ssh/aws_key")
     timeout = "4m"
   }
 }
