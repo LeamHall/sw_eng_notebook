@@ -1,0 +1,72 @@
+I am a Systems Engineer/Software Engineer using Python for backend automation. My code is usually less than a few thousand lines but I want to make it robust, industry standard, and clear to other developers. I focus on the Python Standard Library where possible, for example unittest. I use format() instead of f-strings for older code compatibility, and because I think format() works a lot better in my use case. For code quality I do go outside the standard library, using tools like black, flake8, bandat, vulture, etc. Please feel free to suggest other code quality tools. Some projects require other libraries like Pandas, so I need to include those in my thought process and code-quality tools. 
+
+I'd like to discuss a lot of project set up and design thoughts, so that every project gets started on the right foot and I have the questions and tools I need to move forward. 
+
+Let's start with questions, what else might you need to create this "project initialization plan"? Be creative, explore. 
+
+###
+
+Code versions. For the most part we use Python 3.11-3.14, with the occasional <3.14 constraint. However, I personally didlike using new stuff just because it's new. That's why format() vice f-strings, the latter gives nothing and clutters up the string. f-strings are what Ruby does, and it isn't done well. 
+
+The same reason for using venv+pip+requirements.txt and requirements_dev.txt. uv is great, but brings nothing. if people want to use Rust, they can write in Rust. 
+
+OS/Platform. I have a Linux server background and that's where some of these preferences come from. I am currently developing on a Windows 11 desktop environment with the end state being MS Azure Functions. So we use pathlib to make sure things are not OS restricted. 
+
+Backend is "not HTML/Javascript/UX/UI". I *tend* to work on servers, but now amd doing cloud work. My goal is to learn more and do that well, and let those who like to do pretty stuff with graphs use the data and tools I provide.
+
+Currently the code is usally run as a CLI app, but some of the projects will be serverless cloud based. There are two of me, I guess; the one still building scripts for Linux servers and the one trying to do cloud stuff. Sometimes the desires of those personas come into conflict.
+
+My work is usually in a large enterprise, government, or Department of War setting, so security, STIGS, code standards, artifacts, etc, are always hugely important. 
+
+For testing, unittest and eventually Robot Framework. More tests are good, and we can mock things as needed. 
+
+type checking with mypy is a win, as long as the code can run without mypy being installed on the customer's machine. For a developer, mypy and other code quality tools are welcome, even if not in the standard library.
+
+Currently I use a Makefile on Linux and am trying to do the same on Windows, but don't have that yet. I run code quality manually, and need to have GitHub or GitLab CI/CD runners built (depends on the project) for better quality.
+
+For docstrings, Python standard text, and where needed for code/developers. README.md, architecture docs, type hints, etc.  A good --help for users. 
+
+Projects start in a git repo, even if bare. We'll use semver when we get along enough, and part of the documentation for uses is an install guide that only assumes they have Python on thier workstation. So it talks about setting up the directory structure, pip install -r requirements.txt and starting up a venv if necessary.
+
+Failures should be loud and stop cold so partial data is not processed/inserted. Logging should be extensive. 
+
+Most of my stuff seldom gets used by anyone but me, even when I make it as easy to use as possible. So user feedback is lacking. For me, clarity of reading the code and figuring out what I did 6 months ago is the biggest issue, so I usually ask for explinations and documents when Claude writes stuff.
+
+I am focused on Agile so we use user stories but I am also a systems engineer using Planguage (Gilb), ADRs, architecture docs, etc.
+
+####
+
+Module for CLI/Functions - Let's stick with one file for CLI and the Functions thing will grow. Right now I have to prove this works, and that I can do it, on a desktop before we get to Azure.
+FIPS compliance- yes. For proof of concepts I use SQLite for database, but FIPS is the goal.
+SBOMS - yes
+Air gapped - yes. Which is why fewer libraries makes things easier. Still prefer requirements.txt use the latest, not sure how to handle failures if the needed version isn't available.
+STIGs and coding standards. STIGs are in play and I prefer to use coding standards up front vice having to retrofit. So if there's a good standard let's get it.
+Still working with bandit and getting noise, but that's sometimes a good thing. Will tune it later.
+Makefile - WSL doesn't work and git bash can't find make
+test/robot - good idea, let's go that way.
+format vs fstrings. - There's usually a lot of text in my output, so format allows multi-line placeholders where f-strings have really long lines. I run black with -l79.  For logging using "%", I'm good with that standard; I wrote C before I wrote Python.  I'm surprised I moved to format(). :)
+Speed - my code usually gets run 2-3 times a week and takes less than a minute. uv, ruff, etc, repel me. They lose time in developers learning Rust for Python when Python works for most everyone. If performance is an critical need, use Rust from the start.
+And I hate pinning dependendcies.
+My tools to date aren't long running, they are on demand or on the CLI.
+project-init/ it is, and real files.
+ADR example attached.
+
+####
+make - can't install, controlled environment.
+Security HIGH - yes, some things are there, so if we can code for it let's do so.
+txt is intentional as I print documents to read, and md files don't print well.
+let's try your suggestion on pinning
+{{ project_name }} should be easy to see.
+I put working scripts/progams in bin out of habit. They are one file programs for portability, not modules that make user's life harder.
+License, personal and DoW work are seperate, so different licenses
+CHANGELOG in text
+entry - bin/awesome_cool_script.py
+Only unittest for now, not everything can be tested by RF
+docs/ENGINEERING_GUIDE.txt for getting anyone, including future me, up to speed.
+
+#####
+
+
+
+
+

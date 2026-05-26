@@ -1,0 +1,1097 @@
+PROJECT INITIALIZATION PLAN - CONVERSATION TRANSCRIPT
+======================================================
+Date: 2026-05-25
+Topic: Python project initialization kit for backend automation
+       in security-sensitive (DoW/federal/enterprise) environments
+
+
+===================================================================
+USER (Turn 1)
+===================================================================
+
+I am a Systems Engineer/Software Engineer using Python for backend
+automation. My code is usually less than a few thousand lines but I
+want to make it robust, industry standard, and clear to other
+developers. I focus on the Python Standard Library where possible,
+for example unittest. I use format() instead of f-strings for older
+code compatibility, and because I think format() works a lot better
+in my use case. For code quality I do go outside the standard
+library, using tools like black, flake8, bandat, vulture, etc.
+Please feel free to suggest other code quality tools. Some projects
+require other libraries like Pandas, so I need to include those in
+my thought process and code-quality tools.
+
+I'd like to discuss a lot of project set up and design thoughts, so
+that every project gets started on the right foot and I have the
+questions and tools I need to move forward.
+
+Let's start with questions, what else might you need to create this
+"project initialization plan"? Be creative, explore.
+
+
+===================================================================
+CLAUDE (Turn 1)
+===================================================================
+
+Good framing for this. Before I start drafting a project
+initialization plan, let me ask some questions that I think will
+shape the output significantly. I'll group them so it's easier to
+respond to whichever ones spark something.
+
+Environment & tooling baseline
+
+What Python version(s) are you targeting? You mentioned "older code
+compatibility" for format(), which makes me wonder if you're
+supporting 3.6/3.7 era, or just being defensive. This affects type
+hint syntax, available stdlib modules (like tomllib in 3.11+), and
+which tools you can use.
+
+How are you managing virtual environments and dependencies? venv +
+pip + requirements.txt, or have you moved to pyproject.toml with
+something like pip-tools, uv, or poetry? This matters because modern
+tooling configuration (black, flake8, etc.) increasingly centralizes
+in pyproject.toml.
+
+What OS/platform are these automations running on? Linux servers,
+Windows, mixed? Containerized or bare metal? This affects path
+handling conventions, line endings, and whether you should plan for
+things like pathlib everywhere.
+
+The nature of "backend automation"
+
+When you say backend automation, what does that typically look like
+for you - scheduled jobs, event-driven scripts, API integrations,
+file/data pipelines, system orchestration, or all of the above? The
+shape of the project changes a lot depending on whether you're
+writing a long-running daemon vs. a cron job vs. a CLI tool vs. a
+library other scripts import.
+
+How do these projects get invoked and run in production? cron,
+systemd, Airflow, Jenkins, manually, something else? This influences
+logging, exit codes, config loading, and signal handling conventions.
+
+Who runs the code besides you? Other engineers reading it is one
+thing; ops folks running it with --help is another. Both shape what
+"clear to other developers" means.
+
+Existing conventions and constraints
+
+Do you have an existing project you consider your "gold standard"
+that I should try to match the style of, or are we designing this
+fresh? If you have a template repo or even a messy real project,
+sharing the structure would let me anchor recommendations to your
+reality.
+
+Are there organizational standards you have to conform to - logging
+formats, secret management (Vault, AWS Secrets Manager, env vars),
+config file conventions, internal package indexes? Or is this
+greenfield where you set the rules?
+
+How do you currently handle secrets and configuration? This is one
+of the biggest "started on the wrong foot" sources I see.
+
+Testing and quality philosophy
+
+You mentioned unittest - are you doing pure unit tests, or also
+integration tests against real systems (databases, APIs,
+filesystems)? Do you mock heavily, use fixtures, hit test instances?
+For automation code that touches real systems, the test strategy
+diverges a lot from typical app code.
+
+What's your tolerance for type checking? mypy (or pyright) is a big
+one I'd want to discuss - it's stdlib-adjacent in spirit and catches
+a class of bugs your other tools won't. But adopting it has a real
+cost on a codebase that wasn't written with it in mind.
+
+Do you do any pre-commit automation, or run quality tools manually/
+in CI? pre-commit (the framework) is worth a conversation.
+
+Documentation and handoff
+
+What does "clear to other developers" mean concretely to you -
+docstrings everywhere, a good README, architecture docs, inline
+comments, type hints, all of the above? For automation specifically,
+runbooks and "what to do when this fails at 3am" docs matter more
+than for library code.
+
+Do you use any docstring convention (Google, NumPy, reStructuredText)?
+Do you generate docs with Sphinx or similar, or are docstrings purely
+for reading in source?
+
+Process and lifecycle
+
+How do projects end up in version control and get deployed? Do you
+tag releases, use semantic versioning, build wheels, or just git pull
+on a server?
+
+What's your error/failure philosophy for automation? Fail loud and
+exit, retry with backoff, dead-letter and continue, alert via some
+channel? This is a design question that should be answered at
+project init, not bolted on later.
+
+One creative one
+
+If I asked you to list the three most common ways your past projects
+have decayed or caused you pain six months in, what would they be?
+That tells me what the initialization plan most needs to defend
+against.
+
+---
+
+You don't have to answer all of these. Pick what feels most relevant
+and we'll iterate. If you want, you could also just share a
+representative project's directory tree and requirements.txt and
+I'll work backward from there.
+
+
+===================================================================
+USER (Turn 2)
+===================================================================
+
+Code versions. For the most part we use Python 3.11-3.14, with the
+occasional <3.14 constraint. However, I personally dislike using new
+stuff just because it's new. That's why format() vice f-strings, the
+latter gives nothing and clutters up the string. f-strings are what
+Ruby does, and it isn't done well.
+
+The same reason for using venv+pip+requirements.txt and
+requirements_dev.txt. uv is great, but brings nothing. if people
+want to use Rust, they can write in Rust.
+
+OS/Platform. I have a Linux server background and that's where some
+of these preferences come from. I am currently developing on a
+Windows 11 desktop environment with the end state being MS Azure
+Functions. So we use pathlib to make sure things are not OS
+restricted.
+
+Backend is "not HTML/Javascript/UX/UI". I *tend* to work on servers,
+but now am doing cloud work. My goal is to learn more and do that
+well, and let those who like to do pretty stuff with graphs use the
+data and tools I provide.
+
+Currently the code is usually run as a CLI app, but some of the
+projects will be serverless cloud based. There are two of me, I
+guess; the one still building scripts for Linux servers and the one
+trying to do cloud stuff. Sometimes the desires of those personas
+come into conflict.
+
+My work is usually in a large enterprise, government, or Department
+of War setting, so security, STIGS, code standards, artifacts, etc,
+are always hugely important.
+
+For testing, unittest and eventually Robot Framework. More tests are
+good, and we can mock things as needed.
+
+type checking with mypy is a win, as long as the code can run
+without mypy being installed on the customer's machine. For a
+developer, mypy and other code quality tools are welcome, even if
+not in the standard library.
+
+Currently I use a Makefile on Linux and am trying to do the same on
+Windows, but don't have that yet. I run code quality manually, and
+need to have GitHub or GitLab CI/CD runners built (depends on the
+project) for better quality.
+
+For docstrings, Python standard text, and where needed for code/
+developers. README.md, architecture docs, type hints, etc. A good
+--help for users.
+
+Projects start in a git repo, even if bare. We'll use semver when we
+get along enough, and part of the documentation for uses is an
+install guide that only assumes they have Python on their
+workstation. So it talks about setting up the directory structure,
+pip install -r requirements.txt and starting up a venv if necessary.
+
+Failures should be loud and stop cold so partial data is not
+processed/inserted. Logging should be extensive.
+
+Most of my stuff seldom gets used by anyone but me, even when I make
+it as easy to use as possible. So user feedback is lacking. For me,
+clarity of reading the code and figuring out what I did 6 months ago
+is the biggest issue, so I usually ask for explanations and
+documents when Claude writes stuff.
+
+I am focused on Agile so we use user stories but I am also a systems
+engineer using Planguage (Gilb), ADRs, architecture docs, etc.
+
+
+===================================================================
+CLAUDE (Turn 2)
+===================================================================
+
+This is exactly the context I needed. Your preferences are well-
+formed and the constraints are clear. Before I draft the full
+project initialization plan, I want to surface a few more targeted
+questions and then propose a structure for the plan itself so we can
+iterate on the right thing.
+
+A few follow-ups worth pinning down
+
+On the dual-persona problem (Linux CLI vs. Azure Functions): I'd
+argue these don't have to be in conflict if we set up the project
+structure right. The pattern I'd suggest exploring is keeping your
+business logic in a pure module that knows nothing about how it's
+invoked, then having thin entry points - one a __main__.py or
+cli.py using argparse, another a function_app.py for Azure
+Functions - both of which just parse inputs and call into the same
+library code. Does that resonate, or have you already hit walls with
+that pattern in Azure Functions specifically (e.g., the way it wants
+you to lay out function_app.py and bindings)?
+
+On the DoW/government setting: a few things that has implications
+for that I want to confirm before assuming:
+
+- Are you constrained to FIPS-validated crypto libraries, or is that
+  not in scope for your work?
+- Do you need to produce SBOMs (CycloneDX or SPDX) as a build
+  artifact? pip-audit and cyclonedx-bom are worth discussing if so.
+- Does your environment require offline/airgapped install (i.e.,
+  pip download to a wheelhouse, then pip install --no-index)? This
+  changes how requirements.txt should be structured and pinned.
+- Are STIGs being applied to the systems your code runs on, or are
+  you expected to write code that itself meets a standard (like the
+  SEI CERT Python coding standard)?
+
+On bandit (I think you meant that, not "bandat"): are you running
+it with a config file tuned to your environment, or default rules?
+Government work often needs the config tuned because the default
+noise level obscures real findings.
+
+On Makefiles on Windows: have you considered just (justfile) or
+invoke (Python-based, stdlib-adjacent in spirit)? invoke is
+interesting for you because it's Python, cross-platform, and your
+team already reads Python. But it's a non-stdlib dependency. The
+other option is sticking with make and using Git Bash or WSL on
+Windows. I'd like to know which direction you lean before I include
+it in the plan.
+
+On Robot Framework: that's a meaningful signal. It tells me
+acceptance testing and keyword-driven testing matter to you, and
+that non-developers may eventually run tests. Should the project
+structure include a tests/robot/ or acceptance/ directory from day
+one, even if empty?
+
+On ADRs and Planguage: do you have a preferred ADR template (Michael
+Nygard's, MADR, your own)? And for Planguage, are you using it
+primarily for non-functional requirements specification (Scale,
+Meter, Goal, Stretch, Wish), or also for design quantification? I
+want to make sure the documentation scaffolding I propose matches
+how you actually use these.
+
+Three things I'd push back on, gently
+
+I want to flag these now rather than smuggle them into the plan:
+
+First, on format() vs. f-strings: I take your point on consistency
+and on not chasing novelty. But f-strings have one concrete
+advantage worth knowing about - they're meaningfully faster because
+they're compiled to bytecode rather than parsed at runtime, and
+they're harder to get wrong with positional arguments. I'm not going
+to argue you out of format(); your code, your call. But I'd suggest
+one specific carve-out: logging. The recommended pattern for logging
+is actually neither - it's logger.info("User %s did %s", user,
+action) with %-style and lazy evaluation, because the formatting
+only happens if the log level is enabled. Worth being explicit about
+in the plan.
+
+Second, on uv: you said it "brings nothing." It actually brings two
+things that matter for your context - reproducible installs via a
+lockfile (which requirements.txt alone doesn't give you unless you
+pin transitively with pip-compile), and dramatically faster CI runs.
+The Rust angle is a fair concern for some environments but uv ships
+as a static binary, so users don't need a Rust toolchain. I'd
+suggest the question isn't "uv vs. pip" but "how do I get
+reproducible builds with pip alone" - and the answer there is
+pip-tools (pip-compile to generate a fully-pinned requirements.txt
+from a requirements.in). Want me to include that pattern in the plan?
+
+Third, on "fail loud and stop cold": I agree completely for data
+processing. But for long-running automation that touches multiple
+downstream systems, you sometimes want a transactional pattern -
+collect all the work, validate, then commit, with rollback on
+failure. Worth a section in the plan on which failure mode applies
+to which kind of job.
+
+Proposed structure for the initialization plan
+
+Here's what I'm thinking the deliverable looks like. Tell me what to
+add, cut, or reorder.
+
+1. A pre-flight questionnaire - a short list of questions to answer
+   at the start of every new project (target Python version,
+   deployment target, sensitivity level, lifecycle expectation, who
+   else will run it). This forces the design decisions to the front.
+
+2. Standard repository layout - a directory tree with explanations
+   for each path, designed to work for both CLI and Azure Functions
+   targets, with the pure-logic module separated from entry points.
+
+3. Tooling baseline - the recommended tools with brief justification
+   for each, split into "in the repo as dev dependencies" (black,
+   flake8, bandit, vulture, mypy, pytest-or-unittest, coverage,
+   pip-audit, cyclonedx-bom, etc.) and "on the developer's machine"
+   (git hooks, editor config).
+
+4. Configuration files - annotated examples of pyproject.toml,
+   .flake8, bandit.yaml, mypy.ini, .gitignore, .editorconfig, and
+   .gitattributes. I'd include the actual contents, not just file
+   names.
+
+5. The dependency story - requirements.in -> requirements.txt
+   workflow with pip-compile, separate requirements_dev.in/.txt, and
+   how to handle airgapped installs if relevant.
+
+6. The Makefile (or invoke equivalent) - concrete targets for init,
+   lint, format, test, coverage, security, sbom, clean, build, docs,
+   with cross-platform considerations.
+
+7. Logging and error handling conventions - module-level logger
+   pattern, structured logging considerations for Azure, exit code
+   conventions for CLI, the transactional-vs-fail-fast decision
+   framework.
+
+8. Documentation scaffolding - README template, ADR directory and
+   template, architecture doc skeleton, Planguage-flavored NFR
+   section, install guide template for end users.
+
+9. Testing strategy - directory layout for unittest, tests/
+   integration/, tests/robot/, fixtures pattern, mocking conventions,
+   coverage thresholds.
+
+10. CI/CD scaffolding - separate GitHub Actions and GitLab CI
+    templates running the same set of quality gates, with comments
+    on where they diverge.
+
+11. Security and compliance checklist - bandit config, pip-audit,
+    secrets handling, SBOM generation, what to commit and what not
+    to.
+
+12. The "6 months later" checklist - things to add to every project
+    specifically to defend against future-you struggling to read
+    past-you's code. This is your stated biggest pain point so it
+    deserves its own section.
+
+A few questions on this structure before I start writing:
+
+Do you want this as one consolidated Markdown document, or split
+into multiple files (e.g., a project-init/ folder you could drop
+into a template repo)? My instinct is the latter, because then the
+plan itself doubles as your starter template.
+
+Should I produce the actual config files as real, working files, or
+as annotated examples within the prose? I'd lean toward real files
+since you can copy them straight into a new repo.
+
+Do you want me to write this assuming you'll turn it into a
+cookiecutter template eventually, or is that overkill for your scale?
+
+
+===================================================================
+USER (Turn 3)
+===================================================================
+
+Quick question, where is the SEI CERT Python coding standard to be
+found?
+
+
+===================================================================
+CLAUDE (Turn 3)
+===================================================================
+
+Good question to verify rather than guess at. Let me search.
+
+[Claude performed a web search for "SEI CERT Python coding standard"]
+
+Honest answer: I was wrong to imply there's a SEI CERT Python coding
+standard. There isn't one.
+
+SEI CERT publishes coding standards for C, C++, Java, Perl, and the
+Android platform, and that's the complete list. Python is not on it.
+I conflated "secure coding standards" generally with the SEI CERT
+body of work specifically. My mistake - thanks for asking rather
+than taking my word.
+
+What actually exists for Python in the secure-coding space:
+
+The closest thing to an official-feeling standard is OWASP's
+guidance for Python, particularly the OWASP ASVS (Application
+Security Verification Standard) applied to Python, and the OWASP
+Top 10 mapped to Python idioms. Not a coding standard per se, more a
+security checklist.
+
+PEP 8 is the style standard, which you're already implicitly
+following via black and flake8. Not security-focused.
+
+bandit is essentially the de facto Python security linter and
+encodes a lot of what a CERT-style standard would prescribe - but
+it's a tool, not a published standard document. Its rule list
+(B101-B70x) is the closest thing to an enumerated set of "don't do
+this" rules for Python security.
+
+For government/DoW work specifically, the relevant things to look at
+instead of a nonexistent CERT Python standard:
+
+- NIST SP 800-218 (SSDF) - Secure Software Development Framework,
+  language-agnostic but applicable
+- CISA Secure by Design principles
+- The DISA STIGs don't have a Python application STIG, but the
+  Application Security and Development STIG (ASD STIG) is
+  language-agnostic and does apply to Python code
+
+If you want a rule-by-rule enumerated standard for Python the way
+CERT C exists for C, the honest answer is that one doesn't exist
+with the same authority. The practical substitute is the combination
+of bandit rules + OWASP ASVS + your organization's ASD STIG controls.
+
+I'll stop assuming things I haven't verified. Do you want me to fold
+this - the actual landscape rather than the imagined CERT Python
+standard - into the security section of the initialization plan?
+
+
+===================================================================
+USER (Turn 4)
+===================================================================
+
+I prefer honest admission of mistakes over blathering on and on
+about how sorry you are. So you did well. Let's keep NIST SP
+800-218, the CISA and STIGs in mind. Also NIST 800-53, I think.
+
+
+===================================================================
+CLAUDE (Turn 4)
+===================================================================
+
+Good, I'll keep those in scope. Quick verification on 800-53 since I
+want to be precise about how it fits rather than hand-wave.
+
+[Claude performed a web search to verify 800-53 control details]
+
+800-53 is confirmed in scope and worth being precise about. A quick
+orientation on how it actually intersects with your work, so we're
+working from reality:
+
+800-53 isn't a coding standard the way you might use bandit rules.
+It's a catalog of organizational and system controls, and most of it
+(access control, contingency planning, physical security, etc.) is
+the system owner's problem, not the developer's. But a specific
+subset lands squarely on the developer's desk, and those are the
+ones we should design the project initialization plan around.
+
+The developer-facing controls that matter most for your projects:
+
+SA-11 (Developer Testing and Evaluation) is the one that most
+directly maps to your existing instincts. It requires evidence of
+static analysis, dynamic analysis, and vulnerability scanning
+performed during the SDLC. For you that translates to: bandit output
+as an artifact, pip-audit output as an artifact, coverage reports as
+artifacts, and the CI pipeline that produces them being itself
+version-controlled. The plan should make all of these fall out of
+make security and make test without extra effort.
+
+SA-15 (Development Process, Standards, and Tools) is the one that
+justifies the entire initialization plan we're building. It asks for
+documentation of your SSDLC process and the tools used. The
+initialization plan itself, plus the pyproject.toml and config files
+and CI definitions, becomes the evidence. Worth noting that NIST
+released 800-53 5.2.0 in August 2025 and added a Logging Syntax
+requirement under SA-15 - which reinforces that the logging
+conventions section of our plan isn't just hygiene, it's
+increasingly a compliance artifact.
+
+CM-3 (Configuration Change Control) is satisfied by git + PR
+reviews + tagged releases + a changelog. Free, basically, if the
+plan establishes the conventions.
+
+SI-7 (Software, Firmware, and Information Integrity) is where SBOMs,
+dependency pinning, and integrity verification land. This is the
+strongest argument for pip-compile (or equivalent) producing fully-
+pinned requirements.txt with hashes - pip install --require-hashes
+becomes your integrity check.
+
+AU family (Audit and Accountability) lands on your logging design.
+Structured logging with timestamps, event types, and (where
+applicable) user/principal identity isn't optional for these
+environments.
+
+RA-5 (Vulnerability Scanning) is satisfied for your dependencies by
+pip-audit. For your code, bandit. Both should run in CI and produce
+artifacts that get retained.
+
+How I'd fold this into the plan:
+
+Rather than scattering "NIST says..." references through every
+section, I'd suggest one compliance-mapping appendix at the end of
+the initialization plan that maps each tool, config file, and
+convention back to the specific control it satisfies. Something like:
+
+| Project Artifact            | NIST 800-53      | NIST 800-218 | STIG (ASD)         |
+|-----------------------------|------------------|--------------|--------------------|
+| bandit in CI + artifact     | SA-11, RA-5      | PW.7, PW.8   | ASD-V-222400-ish   |
+| pip-audit + pinned hashes   | SI-7, RA-5       | PW.4, PS.3   | ASD V-222657       |
+| Structured logging module   | AU-2, AU-3, SA-15| PW.6         | ASD V-222396       |
+| ADRs + architecture doc     | SA-15, SA-17     | PO.1         | -                  |
+| Pinned requirements.txt     | SI-7, CM-3       | PS.3, PW.4   | -                  |
+| Tagged releases + CHANGELOG | CM-3             | PS.3         | -                  |
+| --help and user docs        | SA-5             | PS.2         | -                  |
+
+(I'd verify the exact STIG IDs against the current ASD STIG before
+finalizing - I don't want to invent control numbers like I almost
+did with SEI CERT Python.)
+
+Two reasons this matters for how we write the plan:
+
+First, this lets you show up to an assessor or an ATO package with a
+single page that says "here is what we do and here is what it
+satisfies," which is enormously more credible than a tool-by-tool
+conversation.
+
+Second, it lets future-you (or a teammate) understand why a piece of
+the initialization plan exists. Six months later when someone says
+"do we really need pip-audit in CI?", the table answers the question.
+
+One thing to confirm before I start drafting:
+
+Are your projects typically operating at the Low, Moderate, or High
+baseline under 800-53? That changes which controls are in scope.
+Most automation work at the unclassified-but-sensitive level lands
+at Moderate. If you're sometimes at High (which is possible for DoW
+work), there are a few extra controls - like SA-11(1) for
+independent verification - that would shape the CI design.
+
+And one practical question: do you want the compliance-mapping
+appendix to be aspirational (here's what good looks like) or
+strictly minimal (here's the smallest set of controls these tools
+demonstrably satisfy)? I'd lean minimal and honest - overclaiming
+compliance is worse than not claiming it.
+
+Ready to start drafting the plan itself whenever you are. Or if you
+want to keep refining the inputs first, that's fine too.
+
+
+===================================================================
+USER (Turn 5)
+===================================================================
+
+[Uploaded: ADR-0002-jinja2-templating.txt]
+
+ADR-0002: Jinja2 for HTML Templating
+Status:   Accepted
+Date:     2026-03-15
+Author:   Automation Team
+
+CONTEXT
+
+The original MultiTableProcessor design used an HTMLGenerator class
+that built HTML table strings in Python by concatenating strings and
+substituting named placeholders into a template file. That approach
+had two compounding problems: HTML logic lived in Python, and any
+change to the output structure required modifying Python code rather
+than the template.
+
+The quality requirement driving this decision:
+
+  TAG:       Maintainability.Template.EditTime
+  SCALE:     Minutes for a Python engineer with no HTML experience
+             to change a column in the rendered table output,
+             measured from reading the task description to a correct
+             browser render
+  METER:     Observed time in developer task timing with
+             representative config
+  CURRENT:   Not measured formally; estimated 20-30 minutes with
+             string concatenation approach due to HTML scattered
+             across Python methods
+  TOLERABLE: 15 minutes
+  GOAL:      5 minutes
+  STRETCH:   2 minutes (edit the template, re-run, done)
+
+A second requirement was output safety. User-sourced data from Excel
+files is untrusted. The dashboard rendering must not introduce XSS
+vulnerabilities regardless of what cell values the source data
+contains.
+
+  TAG:       Security.Output.XssRisk
+  SCALE:     Number of rendering paths where user-supplied data
+             reaches HTML output without escaping
+  METER:     Code review counting paths from read_excel_files() to
+             final HTML string where escaping is not applied
+  TOLERABLE: 0
+  GOAL:      0
+
+DECISION
+
+HTML rendering uses Jinja2 via TemplateProcessor.render(). The
+HTMLGenerator class was removed. The template lives in
+web/template.html and receives a context dict from
+MultiTableProcessor.generate_html(). CSS and JavaScript file
+contents are loaded by TemplateProcessor.load_file() and marked safe
+explicitly. All user-sourced data passes through Jinja2's autoescape
+mechanism. No HTML string building occurs in Python.
+
+REASONS FOR THIS DECISION
+
+Separation of structure from logic: HTML structure belongs in an
+HTML file. The template loops over tables and hvt_rows directly
+using Jinja2 for-loops. A front-end change (adding a column,
+changing a CSS class) is a template edit, not a Python edit.
+
+Security by default: Jinja2's autoescape=True means every value
+rendered from the context dict is HTML-escaped unless explicitly
+marked safe. The only values marked safe are CSS content and
+JavaScript content, which are read from controlled files in the
+web/ directory, not from user data. This gives XssRisk a measured
+value of 0 rendered paths without escaping for user data.
+
+Tested ecosystem: Jinja2 is the standard templating library for
+Python web and document generation. It is already a dependency of
+Flask and Ansible; it is unlikely to become unmaintained. The
+autoescape feature is well-documented and audited.
+
+Reduced Python complexity: Removing HTMLGenerator simplified
+generate_html() from a method that built HTML strings to a method
+that assembles a context dict and calls render(). The context dict
+is easy to unit-test independently of HTML output.
+
+Template readability: A Jinja2 template reads as HTML with clear
+loop markers. An engineer familiar with any modern templating system
+(Django templates, Handlebars, ERB) can read web/template.html
+without Python knowledge. This matters for handoff to a front-end
+specialist in Phase 2.
+
+CONSEQUENCES
+
+Positive: HTML structure is editable without touching Python. XSS is
+prevented at the rendering layer for all user-sourced data. The
+template is readable by engineers who know HTML but not the Python
+codebase.
+
+Added dependency: Jinja2 is listed in requirements.txt. It was not
+required in the original string-substitution approach. This is an
+accepted trade-off: Jinja2 is a mature, maintained library used
+across the Python ecosystem and is already transitively present in
+many Python environments.
+
+Template as a deployment artifact: web/template.html is a required
+runtime file alongside the Python source. Deploying the dashboard
+generator requires deploying the web/ directory. This is documented
+in docs/README.txt.
+
+Marked-safe discipline: Engineers adding new CSS or JavaScript
+includes must use Markup or the |safe filter explicitly and must not
+apply it to any user-sourced data. This convention must be
+understood and followed. It is documented in
+docs/HOWTO_NEW_ENGINEER.txt.
+
+MIGRATION TRIGGER
+
+Revisit this decision if:
+
+1. A second templating library is proposed for a subsystem (for
+   example, for email report generation). Standardize on one library
+   rather than introducing a second.
+2. Phase 2 moves to a web framework (Flask, FastAPI, Django) that
+   bundles its own templating system. Jinja2 integrates natively
+   with Flask and FastAPI; no migration is needed in that case.
+3. A security audit identifies a path where user data reaches a
+   |safe filter or Markup() call. That is a code defect to be fixed,
+   not an ADR revision.
+
+REFERENCES
+
+docs/ARCHITECTURE.txt                  Template system section
+docs/MULTI_TABLE_PROCESSOR_DESIGN.txt  Design note on template
+                                       rendering
+web/template.html                      The Jinja2 template
+bin/generate_dashboard.py              TemplateProcessor class
+test/test_generate_dashboard.py        TestTemplateProcessor class
+docs/jinja2_migration_guide.txt        Migration notes from
+                                       HTMLGenerator to Jinja2
+
+---
+
+Module for CLI/Functions - Let's stick with one file for CLI and the
+Functions thing will grow. Right now I have to prove this works, and
+that I can do it, on a desktop before we get to Azure.
+
+FIPS compliance- yes. For proof of concepts I use SQLite for
+database, but FIPS is the goal.
+
+SBOMS - yes
+
+Air gapped - yes. Which is why fewer libraries makes things easier.
+Still prefer requirements.txt use the latest, not sure how to handle
+failures if the needed version isn't available.
+
+STIGs and coding standards. STIGs are in play and I prefer to use
+coding standards up front vice having to retrofit. So if there's a
+good standard let's get it.
+
+Still working with bandit and getting noise, but that's sometimes a
+good thing. Will tune it later.
+
+Makefile - WSL doesn't work and git bash can't find make
+
+test/robot - good idea, let's go that way.
+
+format vs fstrings. - There's usually a lot of text in my output, so
+format allows multi-line placeholders where f-strings have really
+long lines. I run black with -l79. For logging using "%", I'm good
+with that standard; I wrote C before I wrote Python. I'm surprised I
+moved to format(). :)
+
+Speed - my code usually gets run 2-3 times a week and takes less
+than a minute. uv, ruff, etc, repel me. They lose time in developers
+learning Rust for Python when Python works for most everyone. If
+performance is an critical need, use Rust from the start.
+
+And I hate pinning dependencies.
+
+My tools to date aren't long running, they are on demand or on the
+CLI.
+
+project-init/ it is, and real files.
+
+ADR example attached.
+
+
+===================================================================
+CLAUDE (Turn 5)
+===================================================================
+
+Excellent - the ADR is exactly the kind of artifact I needed to see.
+It tells me more about how you work than any answer could. A few
+observations and then some final questions before I draft the plan.
+
+What the ADR tells me
+
+Your ADR style is dense, specific, and engineering-grade. It
+includes Planguage with actual Scale/Meter/Goal/Tolerable values
+rather than aspirational hand-waving. It has a Migration Trigger
+section, which is rare and excellent - most ADRs go stale because no
+one writes down what would cause the decision to be revisited.
+References point to specific files. The "Consequences" section
+names a discipline that has to be maintained (the marked-safe rule)
+and points to where it's documented.
+
+This means the plan's ADR template should match this style, not
+generic Nygard. I'll model the template on your example, with
+Planguage NFR blocks, explicit migration triggers, and file-level
+references.
+
+It also tells me you use .txt for docs (not .md), bin/ for scripts,
+test/ (singular), web/, and docs/ with descriptive names like
+MULTI_TABLE_PROCESSOR_DESIGN.txt and HOWTO_NEW_ENGINEER.txt. I'll
+match that. Want me to confirm any of this - particularly .txt vs
+.md for docs? That's an unusual choice and I want to make sure it's
+deliberate rather than legacy.
+
+Resolving the open items from your reply
+
+Air-gapped + "use the latest" + "hate pinning": These are in tension
+and I want to be explicit about the trade-off rather than paper over
+it. Here's the practical reality:
+
+In a connected dev environment, requirements.txt listing jinja2
+(unpinned) works fine - pip resolves to current. In an air-gapped
+target environment, the wheels you ship are what's available.
+Period. So the question is really "where does pinning happen, and
+who does it?"
+
+I'd propose this pattern, which I think respects your preference
+without lying about the constraint:
+
+- requirements.txt - top-level direct dependencies only, unpinned or
+  loosely bounded (e.g., jinja2>=3.0). This is what you maintain by
+  hand. Stays clean and readable.
+- requirements-lock.txt - generated from pip freeze in a known-good
+  environment at release time. Fully pinned with versions, optionally
+  with hashes. This is the air-gap shipping manifest, not something
+  you edit.
+- Wheelhouse - a directory of .whl files matching the lock file,
+  shipped alongside for pip install --no-index --find-links
+  ./wheelhouse -r requirements-lock.txt.
+
+You hand-maintain the unpinned file. The pinned file and wheelhouse
+are build artifacts produced by make wheelhouse at release time.
+You're not pinning during development; you're snapshotting at
+release. Different activity, different file. Does that frame the
+trade-off in a way that works for you?
+
+For handling "needed version isn't available" in the air-gapped
+environment: that's a release-time problem solved by building the
+wheelhouse against the target Python version on a connected machine,
+then transferring the whole wheelhouse. If a wheel doesn't exist for
+the target platform, you find out at build time on the connected
+side, not at install time on the air-gapped side. The install guide
+says "extract, pip install --no-index --find-links wheelhouse -r
+requirements-lock.txt" and that's it.
+
+FIPS + SQLite for PoC: Worth knowing - SQLite itself isn't FIPS-
+validated, but it generally isn't using crypto in a way that
+triggers FIPS scope. Where FIPS bites you in Python is hashlib (MD5
+is verboten in FIPS mode), ssl (must use FIPS-validated OpenSSL),
+and any library that bundles its own crypto. The plan should include
+a "FIPS gotchas" note: avoid hashlib.md5 even for non-security uses
+like cache keys (use hashlib.sha256 or hashlib.blake2b), avoid
+random for anything security-adjacent (use secrets), and check that
+any added dependency doesn't bundle its own SSL/crypto. Sound right?
+
+Makefile on Windows: If WSL doesn't work and Git Bash can't find
+make, your options are:
+1. Install GnuWin32 make or chocolatey's make package and add to
+   PATH (cleanest, true Makefile parity)
+2. Use invoke (Python-based, cross-platform, one dependency - but
+   adds a dependency to dev env)
+3. Use plain .bat scripts or PowerShell scripts alongside the
+   Makefile (duplication, but no install needed)
+
+For your situation - Linux-server origin, occasional Windows
+desktop, eventual Azure - I'd recommend option 1 (install make
+properly) and treat the Makefile as the single source of truth. The
+plan can include the install instructions for make on Windows.
+Option 2 (invoke) would be my second choice but I hear your "fewer
+dependencies" preference. Which way do you want to go?
+
+"format() because there's a lot of text": Now this makes sense and I
+retract my earlier mild pushback. With black -l 79, multi-line
+.format() calls absolutely read better than chains of f-strings that
+have to break across lines awkwardly. You're not being stubborn;
+you're following a coherent style. I'll just note in the plan that
+the choice is intentional and tied to the line-length setting, so
+future maintainers don't "fix" it.
+
+Bandit noise: Agreed it's sometimes a good thing. I'll suggest you
+keep it un-tuned in early projects and document any # nosec comments
+with a reason inline, so the noise becomes a forcing function rather
+than getting silenced.
+
+A few final questions before drafting
+
+1. Project name in the template - should I use a placeholder like
+   {{project_name}} (cookiecutter-style) or a concrete example name
+   like widgetproc that you'd find-and-replace? Your call. The
+   concrete-example approach is easier to read and copy from; the
+   placeholder approach is easier to template later if you do go to
+   cookiecutter.
+
+2. The bin/ convention - your ADR references bin/generate_dashboard.py.
+   Is that where you put the CLI entry point script (executable,
+   with shebang), separate from the library code in a package
+   directory? If so, what's the package directory typically named in
+   your projects - src/<projectname>/, <projectname>/, or lib/? I
+   want to match your existing layout, not impose src/ if you don't
+   use it.
+
+3. License and header conventions - for DoW work, do you have a
+   standard file header (distribution statement, classification
+   marking, copyright)? If so, the plan should include a template
+   file header so every .py gets it consistently.
+
+4. CHANGELOG format - Keep a Changelog (markdown), plain text, or
+   something else?
+
+5. Python entry point - for CLI tools, do you prefer python -m
+   projectname (requires __main__.py in the package) or bin/script.py
+   invoked directly? Your ADR suggests the latter. Confirming.
+
+6. Test framework decision for the plan - unittest only for now,
+   with Robot Framework as a future-tense "when needed" section? Or
+   scaffold both from the start with a test/robot/ directory ready
+   to receive its first .robot file?
+
+7. One creative one - you mentioned future-you reading past-you's
+   code is your biggest pain point. Should the plan include a
+   "Reading Guide" template - a short doc that lives at
+   docs/READING_GUIDE.txt and tells a returning developer "start
+   here, then read this, then this, and here's why the weird thing
+   in module X is the way it is"? Different from architecture docs
+   because it's optimized for re-entry, not for design justification.
+
+Once I have answers to these I'll draft the full plan as real files
+in a project-init/ directory you can drop into a new repo. Estimated
+output: a directory with maybe 15-20 files covering the structure,
+configs, Makefile, doc templates (README, ARCHITECTURE, ADR
+template, READING_GUIDE if you want it), CI templates for both
+GitHub and GitLab, a logging module skeleton, and a compliance-
+mapping appendix.
+
+
+===================================================================
+USER (Turn 6)
+===================================================================
+
+make - can't install, controlled environment.
+
+Security HIGH - yes, some things are there, so if we can code for it
+let's do so.
+
+txt is intentional as I print documents to read, and md files don't
+print well.
+
+let's try your suggestion on pinning
+
+{{ project_name }} should be easy to see.
+
+I put working scripts/programs in bin out of habit. They are one
+file programs for portability, not modules that make user's life
+harder.
+
+License, personal and DoW work are separate, so different licenses
+
+CHANGELOG in text
+
+entry - bin/awesome_cool_script.py
+
+Only unittest for now, not everything can be tested by RF
+
+docs/ENGINEERING_GUIDE.txt for getting anyone, including future me,
+up to speed.
+
+
+===================================================================
+CLAUDE (Turn 6) - SUMMARY
+===================================================================
+
+Claude built the complete project-init/ kit as a directory of real
+files, packaged as project-init.zip.
+
+Key decisions made:
+
+- Since make can't be installed: wrote a Python-based task runner
+  (tasks.py) using only stdlib. Runs identically on Windows and
+  Linux. Invoked as: python tasks.py <task>
+- .txt throughout for docs (README.txt, ARCHITECTURE.txt,
+  ENGINEERING_GUIDE.txt, ADR-NNNN-slug.txt, CHANGELOG.txt)
+- High 800-53 baseline assumed where applicable
+- bin/awesome_cool_script.py as single-file portable entry points,
+  with library code living in the package the bin script imports
+- Two license templates: DoW distribution statement and a personal-
+  work placeholder
+- {{ project_name }} as the placeholder convention
+
+DIRECTORY STRUCTURE PRODUCED:
+
+  project-init/
+  |-- _KIT_README.txt              How to use the kit
+  |-- CHANGELOG.txt                Keep-a-Changelog in plain text
+  |-- LICENSE.txt                  DoW distribution statement template
+  |-- pyproject.toml               Config for black, mypy, coverage,
+  |                                vulture
+  |-- requirements.txt             Direct deps, loosely bounded
+  |-- requirements_dev.txt         Dev tools (black, flake8, mypy,
+  |                                bandit, pip-audit, coverage,
+  |                                pip-tools, cyclonedx-bom)
+  |-- tasks.py                     Cross-platform task runner
+  |                                (stdlib only)
+  |-- .bandit                      Bandit config
+  |-- .editorconfig                Editor consistency
+  |-- .flake8                      Flake8 config
+  |-- .gitattributes               Line ending consistency
+  |-- .gitignore                   Standard Python gitignore
+  |
+  |-- bin/
+  |   `-- {{project_name}}.py      CLI entry point template
+  |                                with argparse, exit codes,
+  |                                top-level exception handling
+  |
+  |-- {{project_name}}/
+  |   |-- __init__.py              Package marker with __version__
+  |   |-- config.py                Config dataclass with validation
+  |   |                            and secret masking
+  |   |-- logging_setup.py         Logging config with UTC,
+  |   |                            structured fields, %-style format
+  |   `-- pipeline.py              run() orchestration with fail-
+  |                                loud-stop-cold policy
+  |
+  |-- test/
+  |   |-- __init__.py
+  |   |-- unit/
+  |   |   |-- __init__.py
+  |   |   `-- test_config.py       Example unit test
+  |   |-- integration/
+  |   |   `-- __init__.py
+  |   `-- robot/
+  |       `-- README.txt           How to add RF tests later
+  |
+  |-- web/                         Placeholder for HTML templates
+  |
+  |-- docs/
+  |   |-- README.txt               User-facing README template
+  |   |-- ARCHITECTURE.txt         System design with Planguage NFRs
+  |   |-- COMPLIANCE.txt           NIST 800-53 / 800-218 / STIG
+  |   |                            mapping table
+  |   |-- ENGINEERING_GUIDE.txt    Onboarding doc for future-you
+  |   |                            and new engineers
+  |   |-- PRE_FLIGHT_QUESTIONNAIRE.txt  Fill in at project start
+  |   |-- adr/
+  |   |   `-- ADR-0001-project-structure.txt  First ADR
+  |   |                                       (justifies the kit)
+  |   `-- templates/
+  |       `-- ADR_TEMPLATE.txt     Matches your ADR-0002 style
+  |
+  |-- .github/
+  |   `-- workflows/
+  |       `-- ci.yml               GitHub Actions: lint, type,
+  |                                security, test, coverage,
+  |                                SBOM. Artifact retention for
+  |                                audit trail.
+  |
+  `-- .gitlab-ci.yml               GitLab CI: same gates as GitHub
+
+TASK RUNNER COMMANDS (tasks.py):
+
+  help              Show available tasks
+  init              Install dev and runtime dependencies
+  format            Auto-format with black -l 79
+  format_check      Check formatting without modifying
+  lint              Run flake8 and vulture
+  typecheck         Run mypy
+  security          Run bandit and pip-audit, retain reports
+  test              Run unit tests
+  test_integration  Run integration tests
+  test_all          Run unit + integration tests
+  coverage          Run unit tests under coverage, HTML report
+  check             Run all quality gates
+  sbom              Generate CycloneDX SBOM
+  lock              Regenerate requirements-lock.txt with hashes
+  wheelhouse        Build air-gap wheelhouse
+  clean             Remove build artifacts and caches
+
+DEFENSE-IN-DEPTH MAPPING:
+
+Against "future-you can't read past-you's code":
+  - ENGINEERING_GUIDE.txt with "Where the dragons are" section
+  - PRE_FLIGHT_QUESTIONNAIRE.txt
+  - ADR template matching ADR-0002 style with Planguage and
+    Migration Triggers
+  - ADR-0001 justifies the kit itself
+
+Against the security review:
+  - COMPLIANCE.txt with the one-page mapping table
+  - bandit + pip-audit with retained artifacts via tasks.py security
+  - tasks.py sbom for CycloneDX SBOM
+  - FIPS conventions in COMPLIANCE.txt and config.py
+
+Against air-gapped install pain:
+  - requirements.txt loose and human-edited
+  - tasks.py lock produces requirements-lock.txt with hashes at
+    release
+  - tasks.py wheelhouse builds the offline bundle
+  - docs/README.txt has both connected and air-gapped install paths
+
+Cross-platform without make:
+  - tasks.py is pure stdlib, runs on Windows without make
+  - Same commands in CI
+
+NEXT STEPS SUGGESTED:
+
+Port a small existing project onto this structure to surface
+friction points specific to your work that couldn't be anticipated
+from conversation alone. Things like: do the exit codes match what
+your downstream scripts expect, does the logging format play nicely
+with your aggregator, does tasks.py check actually catch the things
+you want caught.
+
+
+===================================================================
+END OF TRANSCRIPT
+===================================================================
