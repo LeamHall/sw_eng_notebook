@@ -1,0 +1,110 @@
+Development  Starting a New Project
+
+This is the canonical sequence for starting every new Python project. Each step must complete before the next begins. Do not skip or reorder steps.
+
+
+STEP 1  CREATE DIRECTORY AND REPOSITORY
+
+Create the project directory and initialize a git repository immediately. Every project starts in version control from day one, even if it is bare and has nothing in it yet.
+
+    mkdir project_name
+    cd project_name
+    git init
+    git commit --allow-empty -m "Initial commit"
+
+The empty commit establishes the repository timeline before any files exist. Add a .gitignore at minimum before the first real commit:
+
+    .venv/
+    venv/
+    __pycache__/
+    *.pyc
+    *.pyo
+    .coverage
+    htmlcov/
+    dist/
+    *.egg-info/
+    wheelhouse/
+    .secrets.baseline
+
+
+STEP 2  RUN THE SCAFFOLDING SCRIPT
+
+Unpack research/project-init.zip into the project root and run the scaffolding script. The scaffolding creates the standard directory layout (bin/, project_name/, test/unit/, test/integration/, test/robot/, docs/adr/, docs/templates/), placeholder files, and the initial requirements.txt, requirements_dev.txt, tasks.py, pyproject.toml, and docs/PRE_FLIGHT_QUESTIONNAIRE.txt.
+
+Fill out docs/PRE_FLIGHT_QUESTIONNAIRE.txt immediately after scaffolding. It captures target Python version, deployment target (CLI, Azure Functions, or other), security sensitivity level, expected lifecycle, and who besides the author will run the code. Answers inform every decision that follows.
+
+Stage and commit the scaffolding output before moving to the next step:
+
+    git add .gitignore bin/ project_name/ test/ docs/ tasks.py pyproject.toml requirements.txt requirements_dev.txt
+    git commit -m "Scaffold project structure"
+
+
+STEP 3  RUN /init
+
+Run the /init skill to generate CLAUDE.md. This documents the codebase for Claude Code: directory layout, conventions, entry points, and anything non-obvious about the project. CLAUDE.md is the first thing Claude reads in every session, so it must be accurate before any AI-assisted work begins.
+
+    /init
+
+Review the generated CLAUDE.md and correct anything that does not match the project's actual conventions. Commit it:
+
+    git add CLAUDE.md
+    git commit -m "Add CLAUDE.md codebase documentation"
+
+
+STEP 4  RUN /program_design
+
+Run the /program_design skill before writing any code. This is a one-time design session that establishes who the program is for, how it is invoked, what polished output looks like, how it is delivered, technology choices, MVP definition, and success criteria. The session produces docs/program_design.txt, which all subsequent /requirements sessions read for context.
+
+    /program_design
+
+Do not proceed until docs/program_design.txt exists and the MVP scope is clear. Commit:
+
+    git add docs/program_design.txt
+    git commit -m "Add program design document"
+
+
+STEP 5  RUN /bootstrap
+
+Run the /bootstrap skill after program design and before any further requirements work. Bootstrap reads program_design.txt, writes the single bare-bones first test and importable stub, and confirms the test suite transitions from ImportError to green. This overcomes the blank-screen problem and gives /requirements a concrete foundation to build on.
+
+    /bootstrap
+
+The expected result is one failing test that fails for the right reason (ImportError or AttributeError means the code does not exist yet, which is the correct TDD starting state), followed by a minimal stub that makes that one test pass. Commit:
+
+    git add test/ project_name/
+    git commit -m "Bootstrap: first passing test and stub"
+
+
+STEP 6  RUN /requirements
+
+Run the /requirements skill to capture behaviors before writing implementation. The session walks through BDD behavior capture, failure mode analysis, DDD domain modeling, and Planguage quality thresholds. It produces a living requirements file that is updated throughout the project.
+
+    /requirements
+
+Requirements are written as user stories and acceptance criteria, not implementation notes. Each behavior becomes one or more tests before any implementation is written. Do not leave the /requirements session until the next behavior to implement is clear. Commit the requirements file:
+
+    git add docs/
+    git commit -m "Add initial requirements"
+
+
+STEP 7  TDD LOOP
+
+With requirements in place, enter the TDD loop. Repeat this cycle for every behavior until the MVP is complete.
+
+Write the test first. The test must fail before any implementation is written. A test that passes immediately without implementation is not a test; it is a tautology.
+
+    python -m unittest test/unit/test_module.py
+
+Confirm the failure is for the right reason. ImportError or AttributeError means the code does not exist yet and is the correct starting state. Any other failure (wrong exception type, wrong message) means the test itself may be wrong; fix the test before writing implementation.
+
+Write the minimum implementation to make the test pass. Do not write code that is not required by a currently failing test. Do not write more than one behavior's worth of implementation at a time.
+
+Run the full test suite. All previously passing tests must still pass. A new passing test plus all prior tests still green means the loop is complete for this behavior.
+
+    python tasks.py check
+
+Commit each green loop:
+
+    git commit -m "Implement behavior: description of what was built"
+
+Return to /requirements when the current behavior is complete and the next behavior needs to be defined.

@@ -1,0 +1,428 @@
+Development Style Guide, Tooling Philosophy, and Project Standards
+
+Derived from: Development Style Guide, Python Code Quality Standards, and Project Guidelines (2026-05-25)
+Source: sections/development__style_guide.txt, sections/python__code_quality.txt, research/project-guidelines.txt
+
+
+GOVERNING PRINCIPLE
+
+Tools and dependencies are adopted when the value they deliver exceeds the cost of learning, maintaining, and securing them in the target environment. Target environment includes audited workstations, constrained OS images, and potentially air-gapped deployments. A tool that works everywhere Python works is worth more than a faster tool that may not be available when needed.
+
+
+LANGUAGE
+
+Python is the primary language. The choice is operational, not aesthetic.
+
+Reasons:
+- Faster development velocity for the primary workstreams (data wrangling, automation, cloud-native tooling)
+- Broad platform and architecture support, including constrained and legacy environments
+- Low barrier for team members who need to maintain or extend code after handoff
+- Standard library is deep enough to cover most requirements without external dependencies
+
+Target Python 3.11 through 3.14 as the standard range. An occasional constraint may require below 3.14. Do not adopt new language features simply because they exist; novelty is not a justification.
+
+Go is a respected alternative with genuine advantages (single binary distribution, easy cross-compilation). It is not the current choice because the learning investment required cannot be justified given finite time and an active Python development track. Revisit if deployment friction becomes the dominant constraint and the Python-native solutions (zipapp, PyInstaller) do not address it.
+
+
+LANGUAGE STYLE
+
+Use format() for string interpolation, not f-strings. With black set to line length 79 and a lot of text in the output, format() handles multi-line placeholders far more cleanly than f-strings, which produce very long, unreadable lines. The choice is driven by readability under the line-length constraint, not by stubbornness about novelty.
+
+Use %-style formatting exclusively in log statements (example: logger.info("Processing %s records for user %s", count, user)). Reasons: first, lazy evaluation means the string is only formatted if the log level is enabled, so there is no wasted processing. Second, it matches C-language logging conventions that were learned first, before Python.
+
+Clarity for future reading is a design constraint, not an afterthought. Comments should explain WHY, not WHAT. The code itself says what it does; only non-obvious reasons for a decision belong in a comment.
+
+
+DEPENDENCY PHILOSOPHY
+
+Prefer the Python standard library. Add third-party packages only when the package saves building something non-trivial, delivers outsized value, and meets the environment security requirements.
+
+The filter for any new dependency:
+1. Does it replace significant custom development, or deliver a capability not achievable otherwise?
+2. Is it actively maintained and audited (not just popular)?
+3. Will it be available in the target deployment environment?
+4. Does it belong in the runtime environment, or only in the development environment?
+
+Separate runtime dependencies from development dependencies explicitly. A package required only for testing or linting must not be a requirement for running the tool.
+
+Rust-compiled Python tools (ruff, uv, and similar) are excluded by default. The implementation language is not the objection; portability is. Rust-compiled binaries require a matching architecture and OS target. In constrained OS images and legacy hardware, those binaries may not exist. Pure Python tools work anywhere CPython runs. If performance is a critical need, the correct answer is to write in Rust from the start.
+
+Minimize the number of dependencies. Each additional library increases the wheelhouse size that must be physically transferred, the SBOM surface area, the vulnerability scan scope, and the review burden for security assessors. If stdlib can do it, use stdlib.
+
+
+VIRTUAL ENVIRONMENTS AND PACKAGE INSTALLATION
+
+Use venv for virtual environments and pip for package installation. Maintain requirements.txt for direct runtime dependencies and requirements_dev.txt for development tools. uv, ruff, and Rust-based Python tools add a learning cost and bring no meaningful benefit when code runs a few times a week and completes in under a minute.
+
+
+STANDARD TOOLKIT
+
+The goal is one consistent set of tools across all Python projects. Building familiarity with the same tools on small projects pays off when applying them to large ones. All tools listed here are pure Python unless noted.
+
+mypy is a DEVELOPER TOOL ONLY. The customer's machine must be able to run the code without mypy installed. Type hints are written for correctness, documentation, and tooling support; they do not impose a runtime dependency.
+
+requirements_dev.txt groupings:
+
+    # Formatting
+    black
+    isort
+
+    # Linting
+    flake8
+    flake8-bugbear
+    flake8-pyproject
+    pylint
+
+    # Type checking
+    mypy
+
+    # Security
+    bandit
+    detect-secrets
+    pip-audit
+    safety
+
+    # Testing and coverage
+    coverage
+
+    # SBOM and compliance
+    cyclonedx-bom
+
+    # Dependency hygiene
+    pip-check
+
+    # Workflow
+    pre-commit
+
+    # Code quality metrics
+    interrogate
+    radon
+    vulture
+    wily
+    xenon
+
+
+WHAT EACH TOOL DOES
+
+Formatting:
+  black           Opinionated auto-formatter. Line length 79. Run it first, before any linter.
+  isort           Sorts import statements. Must be configured with profile = "black" or it will conflict with black's import formatting.
+
+Linting:
+  flake8          Style and simple error checking. Requires flake8-pyproject to read config from pyproject.toml.
+  flake8-bugbear  Plugin that catches common buggy patterns: mutable default arguments, broad exception catches, useless expressions. Catches bugs at lint time before they become test failures.
+  pylint          Deeper analysis than flake8: design issues, too-many-arguments, unused variables, etc. Expect overlap with flake8; both are worth keeping.
+
+Type checking:
+  mypy            Static type checker. Catches type errors before runtime. Developer tool only; must not be a runtime dependency.
+
+Security:
+  bandit          Scans source code for security issues: hardcoded passwords, weak crypto, shell injection risks, use of dangerous functions.
+  detect-secrets  Scans for accidentally committed secrets (API keys, tokens, passwords). Critical in regulated and air-gapped environments. Requires a baseline file (see DETECT-SECRETS SETUP below).
+  pip-audit       Checks installed packages against OSV and PyPI Advisory DB for known CVEs.
+  safety          Checks against the Safety DB (PyUp). Complements pip-audit by using a different vulnerability database. Cross-checking reduces blind spots in regulated environments.
+
+Testing and coverage:
+  coverage        Measures test coverage. Use branch = true for branch coverage, which is more thorough than line coverage alone.
+
+SBOM and compliance:
+  cyclonedx-bom   Generates a Software Bill of Materials in CycloneDX format. Required build artifact for compliance.
+
+Dependency hygiene:
+  pip-check       Verifies that all installed packages have their dependencies satisfied (checks for broken or incompatible installs). Different from pip-audit, which checks for CVEs.
+
+Workflow:
+  pre-commit      Runs hooks automatically before each commit. All the above tools can be wired in as hooks.
+
+Code quality metrics:
+  interrogate     Measures docstring coverage (percentage of code that has docstrings). Useful for libraries and public APIs.
+  radon           Computes cyclomatic complexity and maintainability index.
+  vulture         Finds dead code (unused functions, variables, imports).
+  wily            Tracks complexity trends over time using git history. Only meaningful once the project has history to compare.
+  xenon           Enforces complexity thresholds using radon data. Blocks commits if complexity exceeds configured grades.
+
+
+TASK RUNNER
+
+The task runner is tasks.py, a Python-based runner using only the standard library, invoked as python tasks.py <task>. make cannot be installed in the current controlled environment; WSL does not work, and Git Bash cannot find make. tasks.py was chosen because it is pure stdlib, runs identically on Windows and Linux, and uses a language everyone on the project already reads.
+
+Standard tasks: lint, type-check, security (bandit and pip-audit), test, coverage, sbom, check (all gates in sequence), and wheelhouse (builds the air-gapped install package).
+
+pre-commit is used separately as the commit-time hook runner. tasks.py handles manual quality runs; pre-commit wires the same tools to git commits automatically before each commit. See PRE-COMMIT HOOK TIERS below.
+
+
+PRE-COMMIT HOOK TIERS
+
+Split hooks into two tiers to reduce friction while still capturing metrics data.
+
+Blocking (commit fails on violation): black, isort, flake8, pylint, mypy, bandit, detect-secrets
+
+Reporting only (output printed but commit succeeds): radon, wily, interrogate, vulture
+
+This lets you build familiarity with the metrics tools on small clean codebases before they become friction on larger ones.
+
+
+BANDIT POLICY
+
+Keep bandit at its default noise level during early project development. When suppressing a finding with a nosec comment, always write an inline explanation of exactly why the suppression is justified. Early noise is a feature, not a nuisance; it forces deliberate acknowledgment of each finding. An empty skips list is the correct default in a DevSecOps environment. Only add a skip when a finding is a confirmed false positive, and document why.
+
+
+TOOL NOTES AND GOTCHAS
+
+deptry is NOT a pure Python tool. It is written in Rust with a Python wrapper, similar to ruff. If you require pure Python tools for cross-platform consistency or air-gapped environments, use pip-check for dependency compatibility and accept that no pure-Python replacement fully covers deptry's use case (checking that your source code's imports match your declared dependencies in pyproject.toml).
+
+isort and black conflict without configuration. Add to pyproject.toml:
+
+    [tool.isort]
+    profile = "black"
+    line_length = 79
+
+flake8 and black conflict on two specific checks: E203 (whitespace before colon -- black formats slices with spaces around the colon) and W503 (line break before binary operator -- black prefers this style). Add to pyproject.toml:
+
+    [tool.flake8]
+    extend-ignore = ["E203", "W503"]
+
+pylint line-too-long (C0301) is duplicate noise when black is also enforcing line length. Disable it:
+
+    [tool.pylint."messages control"]
+    disable = ["C0301"]
+
+Tab expansion false positives: flake8 and pylint default to 8-space tab expansion (Unix standard) but most editors display tabs as 4 spaces. A deeply indented line with tabs can appear 40 characters wide in the editor but 75+ to the linter. Running black first eliminates this problem because black converts all tabs to spaces before the linters see the file.
+
+pre-commit works on both Linux and Windows. Shell script hooks (.sh) will fail on Windows without Git Bash or WSL. Python-based hooks (all tools in this list) work on both platforms without extra configuration.
+
+
+DETECT-SECRETS SETUP
+
+detect-secrets requires a one-time scan to create a baseline file. Run this once in the project root and commit the result:
+
+    detect-secrets scan > .secrets.baseline
+
+After that, detect-secrets compares new scans against the baseline. Findings already in the baseline are accepted; new ones block the commit. When a finding is a confirmed false positive, update the baseline:
+
+    detect-secrets scan --baseline .secrets.baseline
+
+
+PYPROJECT.TOML CONFIGURATION
+
+One pyproject.toml in the project root configures all tools. Key sections:
+
+    [tool.black]
+    line-length = 79
+    target-version = ["py311"]
+
+    [tool.isort]
+    profile = "black"
+    line_length = 79
+
+    [tool.flake8]
+    max-line-length = 79
+    indent-size = 4
+    extend-ignore = ["E203", "W503"]
+
+    [tool.pylint.format]
+    max-line-length = 79
+    indent-after-paren = 4
+
+    [tool.pylint."messages control"]
+    disable = ["C0301"]
+
+    [tool.mypy]
+    python_version = "3.11"
+    disallow_untyped_defs = true
+    check_untyped_defs = true
+    no_implicit_optional = true
+    strict_optional = true
+    warn_return_any = true
+    warn_unused_configs = true
+    warn_redundant_casts = true
+    warn_unused_ignores = true
+
+    [tool.bandit]
+    skips = []
+
+    [tool.coverage.run]
+    branch = true
+    omit = ["test/*", ".venv/*", "venv/*"]
+
+    [tool.coverage.report]
+    show_missing = true
+    fail_under = 80
+
+    [tool.vulture]
+    min_confidence = 80
+
+    [tool.interrogate]
+    ignore-init-method = true
+    ignore-magic = true
+    fail-under = 80
+
+    [tool.radon]
+    cc_min = "B"
+
+    [tool.xenon]
+    max-absolute = "B"
+    max-modules = "A"
+    max-average = "A"
+
+Complexity grades for radon and xenon run A (simplest) through F (untestable). Setting cc_min = "B" in radon means only functions graded B or worse are reported, keeping output focused on code that needs attention. Setting max-absolute = "B" in xenon means no single function may be more complex than grade B before xenon blocks the build. bandit skips should always have a written justification comment.
+
+
+PROJECT STRUCTURE
+
+Single-file, portable programs belong in bin/. The CLI entry point is bin/project_name.py, invoked directly. There is no python -m entry point. Library code the bin script imports lives in the package directory (named after the project).
+
+Use {{ project_name }} as the placeholder convention in all templates. It is visually obvious where replacement is needed.
+
+The standard directory layout:
+
+    bin/                    single-file entry points
+    project_name/           library package
+        __init__.py
+        config.py
+        logging_setup.py
+        pipeline.py         (or main orchestration module)
+    test/
+        unit/
+        integration/
+        robot/
+    docs/
+        adr/
+        templates/
+    web/                    HTML templates when the project generates HTML output
+
+
+DOCUMENTATION
+
+Use .txt for ALL documentation files. Documents are printed to paper for reading, and Markdown files do not print well. Plain text renders consistently in LibreOffice and other word processors. This applies to README.txt, ARCHITECTURE.txt, CHANGELOG.txt, ADRs, and all other documentation.
+
+Standard documentation files:
+- docs/README.txt                    user-facing introduction
+- docs/ARCHITECTURE.txt              system design with Planguage NFRs
+- docs/ENGINEERING_GUIDE.txt         onboarding and re-entry guide for any engineer
+- docs/COMPLIANCE.txt                compliance control mapping table
+- docs/PRE_FLIGHT_QUESTIONNAIRE.txt  filled in at every project start
+- CHANGELOG.txt                      at the project root, plain text
+
+The docs/ENGINEERING_GUIDE.txt is the primary onboarding document. Its purpose is to get ANYONE up to speed, including the original author returning after months away. It answers: where do I start reading, what is unusual and why, and where are the dragons.
+
+ADRs follow the engineering-grade format demonstrated in ADR-0002 (Jinja2 for HTML Templating). Required elements: Planguage NFR blocks with actual Scale, Meter, Current, Tolerable, Goal, and Stretch values (not aspirational descriptions); a MIGRATION TRIGGER section listing exactly what conditions would cause the decision to be revisited; and References pointing to specific named files. Generic Nygard format without these elements is insufficient.
+
+Use Planguage (Gilb) for non-functional requirements in architecture documents and ADRs. Always provide actual measured or estimated values for Scale, Meter, Goal, Tolerable, and Stretch. Qualitative descriptions like "fast" or "reliable" are not acceptable in these fields.
+
+Maintain separate license templates for DoW work and personal work. Personal work and DoW work are governed by different licenses and must be kept distinct.
+
+
+TESTING
+
+Use Python's built-in unittest module. It is available in every Python environment without installation, satisfies the dependency philosophy, and is sufficient for the primary workstreams. Never use pytest unless explicitly requested.
+
+Write tests before implementation code. See development__sdlc.txt for the full TDD practice.
+
+Use subtest for data-driven test cases rather than writing repetitive test methods. Subtest is built into unittest since Python 3.4 and closes the main productivity gap versus pytest.
+
+pytest is not excluded on principle. If a future environment relaxes the audit constraints on development tooling and the diagnostic output or parametrize capability delivers measurable value, the decision is revisitable. The bar is operational benefit, not philosophical purity.
+
+Scaffold test/unit/, test/integration/, and test/robot/ from the start of every project. Not everything can be tested with Robot Framework, so it will not replace unittest. But the directory structure should be ready. Only unittest tests are written now; RF tests are added when needed.
+
+Mocking is acceptable in unit tests. Unit tests must not require real systems. Integration tests may connect to real instances.
+
+Coverage reports and bandit/pip-audit output are BUILD ARTIFACTS. They must be retained in CI for compliance evidence (NIST 800-53 SA-11).
+
+
+SECURITY AND COMPLIANCE
+
+These projects operate in enterprise, government, and Department of War environments. Security, STIGs, code standards, compliance artifacts, and chain-of-custody for build artifacts are always in scope, not optional additions.
+
+Code to the NIST 800-53 HIGH baseline from the start. Some projects reach HIGH classification, so the project structure should code for HIGH from the start rather than retrofitting controls later.
+
+The four applicable compliance frameworks are: NIST SP 800-53 rev 5 (security controls, High baseline), NIST SP 800-218 (SSDF, Secure Software Development Framework), CISA Secure by Design principles, and the DISA Application Security and Development STIG (ASD STIG). There is NO SEI CERT Python coding standard; it does not exist. The practical substitute is the combination of bandit rules, OWASP ASVS, and ASD STIG controls.
+
+FIPS compliance is the TARGET for production. SQLite is acceptable for proof-of-concept work because it does not use crypto in ways that trigger FIPS scope. For production, FIPS-validated cryptography is required. FIPS gotchas in Python: avoid hashlib.md5 even for non-security uses like cache keys (use hashlib.sha256 or hashlib.blake2b instead); avoid random for anything security-adjacent (use secrets instead); verify that any added dependency does not bundle its own SSL or crypto library.
+
+Generate a CycloneDX SBOM as a standard build artifact. cyclonedx-bom is included in the standard toolkit for this purpose.
+
+Maintain a COMPLIANCE.txt file mapping each project artifact to the specific NIST 800-53, NIST 800-218, and ASD STIG control numbers it satisfies. This allows an assessor or ATO package reviewer to quickly identify what controls are covered and how. Overclaiming compliance is worse than underclaiming it; keep the mapping honest and minimal.
+
+Apply coding standards and STIGs UP FRONT, not as a retrofit. Retrofitting security standards into existing code is significantly harder, less complete, and more expensive than building for them from day one.
+
+
+DEPENDENCY MANAGEMENT
+
+Maintain three dependency artifacts:
+1. requirements.txt       direct runtime dependencies, loosely bounded, human-edited, not pinned
+2. requirements-lock.txt  fully pinned with hashes, generated by pip freeze at release time, not edited by hand
+3. wheelhouse/            pre-downloaded wheel files for air-gapped install, built at release time via python tasks.py wheelhouse
+
+The pattern separates development-time editing from release-time artifact generation. requirements.txt stays clean, readable, and human-edited during development. Pinning happens once at release time to produce the lock file and wheelhouse. These are build artifacts generated by a tool, not files maintained by hand.
+
+requirements_dev.txt does not pin versions during development. For air-gapped environments using a private PyPI mirror, generate a pinned lockfile to ensure reproducibility across machines:
+
+    pip-compile requirements_dev.txt -o requirements_dev.lock
+
+Install from the lockfile on air-gapped machines:
+
+    pip install --no-index --find-links wheelhouse -r requirements-lock.txt
+
+When a needed wheel is not available in an air-gapped environment, the failure must surface AT BUILD TIME on the connected machine, not at install time on the air-gapped machine. Build the wheelhouse on a connected machine against the target Python version before transfer.
+
+
+ERROR HANDLING AND LOGGING
+
+When a failure occurs, FAIL LOUD AND STOP COLD. Do not continue processing partial data. The primary concern is preventing partial data from being processed or inserted into downstream systems, which is a harder problem to recover from than a clean failure with a full log.
+
+Logging must be extensive. Log statements must include UTC timestamps, event types, and where applicable the identity of the user or principal performing the action. This satisfies the AU (Audit and Accountability) family of controls under 800-53 and the SA-15 Logging Syntax requirement added in 800-53 revision 5.2.0.
+
+Log statements use %-style formatting. See LANGUAGE STYLE above for the technical and historical reasons:
+
+    logger.info("Processing %s records for user %s", count, user)
+
+
+VERSION CONTROL AND RELEASE
+
+Start every project in a git repository from day one, even if bare.
+
+Use semantic versioning when the project reaches sufficient maturity.
+
+The install guide for end users must assume only that they have Python installed on their workstation. It covers: setting up the directory structure, creating a virtual environment if needed, and running pip install -r requirements.txt. For air-gapped environments it covers the wheelhouse install path separately.
+
+
+CI/CD
+
+Template CI/CD pipelines for both GitHub Actions and GitLab CI. Both are in use depending on the project, so both pipeline templates are maintained. Both pipelines run the same quality gates in the same order: lint, type check, security scan (bandit and pip-audit), unit tests, coverage, and SBOM generation.
+
+All CI quality gate reports (bandit output, pip-audit output, coverage HTML, SBOM) are retained as artifacts for the compliance audit trail.
+
+Quality gates are currently run manually via python tasks.py check. Building toward automated CI/CD is an active goal.
+
+
+PROJECT INITIATION
+
+Fill out docs/PRE_FLIGHT_QUESTIONNAIRE.txt at the start of every new project. It captures: target Python version, deployment target (CLI, Azure Functions, or other), security sensitivity level, expected lifecycle, and who besides the author will run the code.
+
+Use Agile user stories alongside systems engineering documentation. Planguage NFRs, ADRs, and architecture docs are complementary to user stories, not competing with them.
+
+The PRIMARY INTENDED READER of most code and documentation is the original author returning after six months with no memory of how the code works. This is the most common use case. Write code, documentation, and especially ENGINEERING_GUIDE.txt for this reader first.
+
+
+DESIGN PHILOSOPHY
+
+The three most common ways past projects have decayed or caused pain six months in: the primary pain is the original author not being able to read and understand their own code after months away. This drives the emphasis on ENGINEERING_GUIDE.txt, extensive inline documentation, ADRs that explain WHY decisions were made, and code written to be read rather than written to be clever. Secondary pain points are the security and compliance requirements being retrofitted rather than built in, and the struggle with cross-platform tooling.
+
+
+EDITORS AND ENVIRONMENT
+
+Vim on Linux. Notepad++ on Windows. Both are fast, lightweight, available in constrained environments, and have zero external runtime dependencies. Neither requires a language server, a Node.js runtime, or a cloud connection.
+
+The origin of the Vim habit (remote system administration across high-latency links where GUI tools were unavailable) no longer describes the primary work environment. The tool is retained on merit: it opens instantly, works on any hardware, and has no meaningful friction for the current workstreams.
+
+Language server integration (LSP) is available in Vim via plugins if inline type intelligence becomes a worthwhile investment. It is not a current priority.
+
+VSCode and similar IDEs offer genuine value for large, multi-file, object-oriented codebases where jump-to-definition and integrated debugging reduce navigation cost significantly. The current workstreams (automation scripts, data wrangling, self-contained tools) do not present that navigation problem at a scale that justifies the overhead.
+
+
+TEAM CONTINUITY
+
+Tools and dependency choices must account for the next person. A tool that requires a complex environment to run transfers the setup burden to every teammate and successor. Prefer solutions a team member can reproduce from the git repository with minimal additional steps.
+
+Python with a documented venv and a requirements file is a reproducible environment. A Go binary is self-contained but opaque to a Python-skilled team. The continuity argument favors Python for the current team composition.

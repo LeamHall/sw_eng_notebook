@@ -1,0 +1,137 @@
+PROJECT GUIDELINES
+Derived from project initialization planning session, 2026-05-25
+Source: research/conversation-transcript.txt
+
+These guidelines establish consistent standards for all Python projects in enterprise, government, and Department of War settings. Each guideline is stated as a clear rule. Where a guideline came from a question-and-answer exchange, the original question and the reasoning behind the answer are preserved so future readers understand why the rule exists, not just what it is.
+
+
+SECTION 1: PYTHON VERSION AND LANGUAGE STYLE
+
+1. Target Python 3.11 through 3.14 as the standard range. An occasional constraint may require below 3.14. Do not adopt new language features simply because they exist; novelty is not a justification.
+
+2. Use format() for string interpolation, not f-strings. QUESTION ASKED: Is there a concrete reason to prefer format() over f-strings, given that f-strings are faster and harder to misuse with positional arguments? ANSWER: With black set to line length 79 and a lot of text in the output, format() handles multi-line placeholders far more cleanly than f-strings, which produce very long, unreadable lines. The choice is driven by readability under the line-length constraint, not by stubbornness about novelty. f-strings are what Ruby does, and it is not done well there either.
+
+3. Use %-style formatting exclusively in log statements (example: logger.info("Processing %s records for user %s", count, user)). QUESTION ASKED: For logging specifically, should format(), f-strings, or %-style be used? ANSWER: %-style, for two reasons. First, it uses lazy evaluation - the string is only formatted if the log level is enabled, so there is no wasted processing. Second, it matches C-language logging conventions that were learned first, before Python.
+
+4. Favor the Python Standard Library. Only go outside it when a tool or library provides clear, proven, necessary value that stdlib cannot provide.
+
+
+SECTION 2: TOOLING
+
+5. Use venv for virtual environments and pip for package installation. Maintain requirements.txt for runtime dependencies and requirements_dev.txt for development tools. QUESTION ASKED: Would you consider moving to uv, pyproject.toml-based tooling, or pip-tools for reproducible builds? ANSWER: No. uv, ruff, and Rust-based Python tools add a learning cost and bring no meaningful benefit when code runs a few times a week and completes in under a minute. If performance is a critical need, the correct answer is to write in Rust from the start. Python works for almost everyone.
+
+6. The developer quality toolset is: black (formatter, line length 79), flake8 (linter), bandit (security linter), vulture (dead code finder), mypy (type checker), pip-audit (dependency vulnerability scanner), cyclonedx-bom (SBOM generator), and coverage (test coverage). These run via tasks.py.
+
+7. mypy is a DEVELOPER TOOL ONLY. The customer's machine must be able to run the code without mypy installed. Type hints are written for correctness, documentation, and tooling support; they do not impose a runtime dependency.
+
+8. The task runner is tasks.py, a Python-based runner using only the standard library, invoked as python tasks.py <task>. QUESTION ASKED: What is stopping you from using a Makefile on Windows, and which alternative would you accept? ANSWER: make cannot be installed in the current controlled environment; WSL does not work, and Git Bash cannot find make. tasks.py was chosen because it is pure stdlib, runs identically on Windows and Linux, and uses a language everyone on the project already reads.
+
+9. Keep bandit at its default noise level during early project development. When suppressing a finding with a nosec comment, always write an inline explanation of exactly why the suppression is justified. Early noise is a feature, not a nuisance; it forces deliberate acknowledgment of each finding.
+
+
+SECTION 3: PROJECT STRUCTURE
+
+10. Single-file, portable programs belong in bin/. QUESTION ASKED: What is the intended use of the bin/ directory - executable entry points, a package, or something else? ANSWER: Working scripts and programs go in bin/ by convention from Linux server work. They are single-file programs kept portable. Modules that require installation or add complexity for users are avoided.
+
+11. The CLI entry point is bin/project_name.py, invoked directly. There is no python -m entry point. Library code the bin script imports lives in the package directory (named after the project).
+
+12. Use {{ project_name }} as the placeholder convention in all templates. QUESTION ASKED: Should the template use cookiecutter-style {{ project_name }} placeholders or a concrete example name like widgetproc? ANSWER: {{ project_name }} is preferred because it is visually obvious where replacement is needed.
+
+13. The standard directory layout is: bin/ (single-file entry points), project_name/ (library package with __init__.py, config.py, logging_setup.py, and a pipeline or main orchestration module), test/ with subdirectories unit/, integration/, and robot/, docs/ with subdirectories adr/ and templates/, and web/ for HTML templates when the project generates HTML output.
+
+
+SECTION 4: DOCUMENTATION
+
+14. Use .txt for ALL documentation files. QUESTION ASKED: Is the .txt extension a deliberate choice or just legacy habit? ANSWER: It is deliberate. Documents are printed to paper for reading, and Markdown files do not print well. Plain text renders consistently in LibreOffice and other word processors. This applies to README.txt, ARCHITECTURE.txt, CHANGELOG.txt, ADRs, and all other documentation.
+
+15. Standard documentation files are: docs/README.txt (user-facing), docs/ARCHITECTURE.txt (system design with Planguage NFRs), docs/ENGINEERING_GUIDE.txt (onboarding and re-entry guide for any engineer including the original author), docs/COMPLIANCE.txt (compliance control mapping table), docs/PRE_FLIGHT_QUESTIONNAIRE.txt (filled in at every project start), and CHANGELOG.txt at the project root.
+
+16. The docs/ENGINEERING_GUIDE.txt is the primary onboarding document. QUESTION ASKED: Would a "Reading Guide" template - a short doc telling a returning developer where to start, what to read in order, and why the unusual things are the way they are - be useful? ANSWER: Yes, and it should be named docs/ENGINEERING_GUIDE.txt. Its purpose is to get ANYONE up to speed, including the original author returning after months away. It answers: where do I start reading, what is unusual and why, and where are the dragons.
+
+17. CHANGELOG.txt is maintained in plain text at the project root. QUESTION ASKED: What format should the CHANGELOG use - Keep a Changelog (Markdown), plain text, or something else? ANSWER: Plain text.
+
+18. ADRs follow the engineering-grade format demonstrated in ADR-0002 (Jinja2 for HTML Templating). QUESTION ASKED: Do you have a preferred ADR template, and do you use Planguage for design quantification or only for NFR specification? ANSWER: The ADR-0002 example is the required style. Required elements are: Planguage NFR blocks with actual Scale, Meter, Current, Tolerable, Goal, and Stretch values (not aspirational descriptions), a MIGRATION TRIGGER section listing exactly what conditions would cause the decision to be revisited, and References pointing to specific named files. Generic Nygard format without these elements is insufficient.
+
+19. Maintain separate license templates for DoW work and personal work. QUESTION ASKED: Do you have a standard file header or license convention, particularly for DoW work? ANSWER: Personal work and DoW work are governed by different licenses and must be kept distinct. Two templates are needed.
+
+20. Use Planguage (Gilb) for non-functional requirements in architecture documents and ADRs. Always provide actual measured or estimated values for Scale, Meter, Goal, Tolerable, and Stretch. Qualitative descriptions like "fast" or "reliable" are not acceptable in these fields.
+
+
+SECTION 5: TESTING
+
+21. Write tests before implementation code. Tests use Python's built-in unittest module. Never use pytest unless explicitly requested.
+
+22. Scaffold test/unit/, test/integration/, and test/robot/ from the start of every project. QUESTION ASKED: Should the Robot Framework directory be scaffolded from day one even if no RF tests will be written immediately? ANSWER: Yes. Not everything can be tested with Robot Framework, so it will not replace unittest. But the directory structure should be ready. Only unittest tests are written now; RF tests are added when needed.
+
+23. Mocking is acceptable in unit tests. Unit tests must not require real systems. Integration tests may connect to real instances.
+
+24. Coverage reports and bandit/pip-audit output are BUILD ARTIFACTS. They must be retained in CI for compliance evidence (NIST 800-53 SA-11).
+
+
+SECTION 6: SECURITY AND COMPLIANCE
+
+25. Code to the NIST 800-53 HIGH baseline from the start. QUESTION ASKED: Are your projects operating at the Low, Moderate, or High baseline under 800-53? ANSWER: HIGH. Some projects reach that classification level, so the project structure should code for HIGH from the start rather than retrofitting controls later.
+
+26. The four applicable compliance frameworks are: NIST SP 800-53 rev 5 (security controls, High baseline), NIST SP 800-218 (SSDF, Secure Software Development Framework), CISA Secure by Design principles, and the DISA Application Security and Development STIG (ASD STIG). There is NO SEI CERT Python coding standard; it does not exist. The practical substitute is the combination of bandit rules, OWASP ASVS, and ASD STIG controls.
+
+27. FIPS compliance is the TARGET for production. QUESTION ASKED: Do FIPS-validated crypto requirements apply to your work? ANSWER: Yes. SQLite is acceptable for proof-of-concept work because it does not use crypto in ways that trigger FIPS scope. For production, FIPS-validated cryptography is required. FIPS gotchas in Python: avoid hashlib.md5 even for non-security uses like cache keys (use hashlib.sha256 or hashlib.blake2b instead), avoid random for anything security-adjacent (use secrets instead), and verify that any added dependency does not bundle its own SSL or crypto library.
+
+28. Generate a CycloneDX SBOM as a standard build artifact. QUESTION ASKED: Do you need to produce SBOMs as a build artifact? ANSWER: Yes.
+
+29. Maintain a COMPLIANCE.txt file mapping each project artifact to the specific NIST 800-53, NIST 800-218, and ASD STIG control numbers it satisfies. This table allows an assessor or ATO package reviewer to quickly identify what controls are covered and how. Overclaiming compliance is worse than underclaiming it; keep the mapping honest and minimal.
+
+30. Apply coding standards and STIGs UP FRONT, not as a retrofit. QUESTION ASKED: Do you prefer to apply STIGs and security standards from the start or add them later? ANSWER: Up front. Retrofitting security standards into existing code is significantly harder, less complete, and more expensive than building for them from day one.
+
+
+SECTION 7: DEPENDENCY MANAGEMENT
+
+31. Maintain three dependency artifacts: requirements.txt (direct runtime dependencies, loosely bounded, human-edited, not pinned), requirements-lock.txt (fully pinned with hashes, generated by running pip freeze at release time, not edited by hand), and a wheelhouse/ directory (pre-downloaded wheel files for air-gapped install, built at release time using python tasks.py wheelhouse). QUESTION ASKED: You said you hate pinning dependencies. How do you reconcile that with air-gapped deployment requirements? ANSWER: The pattern separates development-time editing from release-time artifact generation. requirements.txt stays clean, readable, and human-edited during development. Pinning happens once at release time to produce the lock file and wheelhouse. These are build artifacts generated by a tool, not files maintained by hand. Development and release are different activities.
+
+32. Minimize the number of dependencies. QUESTION ASKED: Why is minimizing dependencies important given that air-gapped installs are in scope? ANSWER: Each additional library increases the wheelhouse size that must be physically transferred, the SBOM surface area, the vulnerability scan scope, and the review burden for security assessors. If stdlib can do it, use stdlib.
+
+33. When a needed wheel is not available in an air-gapped environment, the failure must surface AT BUILD TIME on the connected machine, not at install time on the air-gapped machine. Build the wheelhouse on a connected machine against the target Python version before transfer. The install guide documents the air-gapped path: pip install --no-index --find-links wheelhouse -r requirements-lock.txt.
+
+
+SECTION 8: ERROR HANDLING AND LOGGING
+
+34. When a failure occurs, FAIL LOUD AND STOP COLD. Do not continue processing partial data. QUESTION ASKED: What is your error and failure philosophy for automation - fail fast, retry with backoff, dead-letter and continue, or something else? ANSWER: Loud failure and immediate stop. The primary concern is preventing partial data from being processed or inserted into downstream systems, which is a harder problem to recover from than a clean failure with a full log.
+
+35. Logging must be extensive. Log statements must include UTC timestamps, event types, and where applicable the identity of the user or principal performing the action. This satisfies the AU (Audit and Accountability) family of controls under 800-53 and the SA-15 Logging Syntax requirement added in 800-53 revision 5.2.0.
+
+36. Log statements use %-style formatting. See guideline 3 for the technical and historical reasons.
+
+
+SECTION 9: VERSION CONTROL AND RELEASE PROCESS
+
+37. Start every project in a git repository from day one, even if bare. QUESTION ASKED: How do projects enter version control? ANSWER: Every project starts in git immediately.
+
+38. Use semantic versioning when the project reaches sufficient maturity.
+
+39. The install guide for end users must assume only that they have Python installed on their workstation. It covers: setting up the directory structure, creating a virtual environment if needed, and running pip install -r requirements.txt. For air-gapped environments it covers the wheelhouse install path separately.
+
+
+SECTION 10: CI/CD
+
+40. Template CI/CD pipelines for both GitHub Actions and GitLab CI. Both pipelines run the same quality gates in the same order: lint, type check, security scan (bandit + pip-audit), unit tests, coverage, and SBOM generation. QUESTION ASKED: Do you have a preference between GitHub and GitLab? ANSWER: Both are in use depending on the project, so both pipeline templates are maintained.
+
+41. All CI quality gate reports (bandit output, pip-audit output, coverage HTML, SBOM) are retained as artifacts for the compliance audit trail.
+
+42. Quality gates are currently run manually via python tasks.py check. Building toward automated CI/CD is an active goal.
+
+
+SECTION 11: PROJECT INITIATION AND CONTEXT
+
+43. Fill out docs/PRE_FLIGHT_QUESTIONNAIRE.txt at the start of every new project. It captures: target Python version, deployment target (CLI, Azure Functions, or other), security sensitivity level, expected lifecycle, and who besides the author will run the code.
+
+44. Use Agile user stories alongside systems engineering documentation. Planguage NFRs, ADRs, and architecture docs are complementary to user stories, not competing with them.
+
+45. The PRIMARY INTENDED READER of most code and documentation is the original author returning after six months with no memory of how the code works. This is the most common use case. Write code, documentation, and especially ENGINEERING_GUIDE.txt for this reader first.
+
+46. These projects operate in enterprise, government, and Department of War environments. Security, STIGs, code standards, compliance artifacts, and chain-of-custody for build artifacts are always in scope, not optional additions.
+
+
+SECTION 12: DESIGN PHILOSOPHY
+
+47. QUESTION ASKED: If you had to name the three most common ways past projects have decayed or caused pain six months in, what would they be? ANSWER: The primary pain is the original author not being able to read and understand their own code after months away. This drives the emphasis on ENGINEERING_GUIDE.txt, extensive inline documentation, ADRs that explain WHY decisions were made, and code written to be read rather than written to be clever. Secondary pain points are the security and compliance requirements being retrofitted rather than built in, and the struggle with cross-platform tooling (the Makefile problem).
+
+48. Clarity for future reading is a design constraint, not an afterthought. Explanations and documentation are requested explicitly when code is written. Comments should explain WHY, not WHAT. The code itself says what it does; only non-obvious reasons for a decision belong in a comment.
